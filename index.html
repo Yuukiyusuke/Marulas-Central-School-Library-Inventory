@@ -42,8 +42,8 @@
           <div class="breadcrumb"><span>My library</span><span class="crumb-dot">•</span><strong id="breadcrumbCurrent">All books</strong></div>
           <div class="topbar-right">
             <span class="today-label" id="todayLabel"></span>
-            <button class="accessibility-trigger" id="accessibilitySettingsButton" type="button" aria-haspopup="dialog" aria-controls="accessibilitySettingsModal" aria-label="Open reading accessibility settings">
-              <span class="accessibility-trigger-icon" aria-hidden="true">Aa</span><span class="accessibility-trigger-label">Reading settings</span>
+            <button class="accessibility-trigger" id="accessibilitySettingsButton" type="button" aria-haspopup="dialog" aria-controls="accessibilitySettingsModal" aria-label="Open settings">
+              <span class="accessibility-trigger-icon" aria-hidden="true"><svg class="settings-gear-icon" viewBox="0 0 24 24" focusable="false"><path d="M19.14 12.94c.04-.31.06-.62.06-.94s-.02-.63-.07-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7.1 7.1 0 0 0-1.63-.95l-.36-2.54a.5.5 0 0 0-.5-.43h-3.84a.5.5 0 0 0-.5.43l-.36 2.54c-.59.23-1.14.55-1.63.95l-2.39-.96a.5.5 0 0 0-.61.22L2.52 8.84a.5.5 0 0 0 .12.64l2.03 1.58a7.43 7.43 0 0 0 0 1.88l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .61.22l2.39-.96c.49.4 1.04.72 1.63.95l.36 2.54a.5.5 0 0 0 .5.43h3.84a.5.5 0 0 0 .5-.43l.36-2.54c.59-.23 1.14-.55 1.63-.95l2.39.96a.5.5 0 0 0 .61-.22l1.92-3.32a.5.5 0 0 0-.12-.64zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></span><span class="accessibility-trigger-label">Settings</span>
             </button>
             <button class="role-switch-button" id="logoutButton" type="button" aria-label="Sign out">
               <span class="role-icon" id="roleIcon" aria-hidden="true">📖</span>
@@ -197,7 +197,7 @@
         <input class="form-input" id="bookTitle" name="title" placeholder="e.g. The Very Hungry Caterpillar" required maxlength="80" />
         <div class="form-row">
           <div class="form-field"><label class="field-label" for="bookAuthor">Author</label><input class="form-input" id="bookAuthor" name="author" placeholder="Who wrote it?" maxlength="60" /></div>
-          <div class="form-field"><label class="field-label" for="bookCategory">Story world</label><select class="form-input" id="bookCategory" name="category"><option>Picture Books</option><option>Adventure</option><option>Animals</option><option>Fairy Tales</option><option>Learning</option><option>Other</option></select></div>
+          <div class="form-field"><label class="field-label" for="bookCategory">Story world</label><select class="form-input" id="bookCategory" name="category"><option value="Picture Books">Picture Books</option><option value="Adventure">Adventure</option><option value="Animals">Animals</option><option value="Fairy Tales">Fairy Tales</option><option value="Learning">Learning</option><option value="Other">Other</option></select></div>
         </div>
         <label class="field-label" for="coverUpload">Cover picture <span class="optional-label">optional</span></label>
         <label class="upload-box" for="coverUpload">
@@ -284,12 +284,34 @@
 
     <dialog class="modal accessibility-modal" id="accessibilitySettingsModal" aria-labelledby="accessibilitySettingsTitle">
       <section class="modal-card accessibility-settings-card">
-        <button class="modal-close" type="button" data-close="accessibilitySettingsModal" aria-label="Close reading settings">&times;</button>
+        <button class="modal-close" type="button" data-close="accessibilitySettingsModal" aria-label="Close settings">&times;</button>
         <div class="modal-kicker">MAKE READING COMFY</div>
-        <h2 id="accessibilitySettingsTitle">Reading settings</h2>
-        <p class="modal-description">Choose what helps you read. We&#8217;ll remember on this device.</p>
-        <fieldset class="theme-settings-group">
-          <legend>App appearance</legend>
+        <h2 id="accessibilitySettingsTitle">Settings</h2>
+        <p class="modal-description">Pick the colors and text you like best.</p>
+        <button class="reader-tour-trigger settings-tour-trigger" id="settingsTourButton" type="button" aria-haspopup="dialog" aria-controls="readingSettingsTourModal">
+          <span aria-hidden="true">&#10024;</span> Take a quick tour
+        </button>
+        <fieldset class="language-settings-group" aria-describedby="languageSettingsDescription">
+          <legend class="settings-section-heading">
+            <span class="settings-section-icon settings-language-icon" aria-hidden="true">🗣️</span>
+            <span class="settings-section-title">Choose a language</span>
+          </legend>
+          <p class="settings-section-description" id="languageSettingsDescription">Choose words that feel easy to read.</p>
+          <label class="language-choice-row" for="languageChoice">
+            <span class="language-choice-icon" aria-hidden="true">🌎</span>
+            <span class="language-choice-label">Language</span>
+            <select class="form-input language-choice-select" id="languageChoice" name="language">
+              <option value="en">English</option>
+              <option value="fil">Filipino (Tagalog)</option>
+            </select>
+          </label>
+        </fieldset>
+        <fieldset class="theme-settings-group" aria-describedby="themeSettingsDescription">
+          <legend class="settings-section-heading">
+            <span class="settings-section-icon settings-appearance-icon" aria-hidden="true">🎨</span>
+            <span class="settings-section-title">Choose a look</span>
+          </legend>
+          <p class="settings-section-description" id="themeSettingsDescription">Pick bright or cozy colors.</p>
           <div class="theme-choice-list">
             <label class="theme-choice" for="lightThemeChoice">
               <span class="theme-choice-icon theme-choice-icon-light" aria-hidden="true">☀</span>
@@ -303,9 +325,57 @@
             </label>
           </div>
         </fieldset>
+        <fieldset class="palette-settings-group" aria-describedby="colorThemeSettingsDescription">
+          <legend class="settings-section-heading">
+            <span class="settings-section-icon settings-palette-icon" aria-hidden="true">🌈</span>
+            <span class="settings-section-title">Pick your story colors</span>
+          </legend>
+          <p class="settings-section-description" id="colorThemeSettingsDescription">Choose the colors for your library.</p>
+          <div class="palette-choice-list">
+            <label class="palette-choice" for="storybookPaletteChoice">
+              <span class="palette-choice-art palette-storybook-art" aria-hidden="true">📚</span>
+              <span class="palette-choice-copy"><strong>Storybook</strong><small>Purple and gold</small></span>
+              <input id="storybookPaletteChoice" type="radio" name="colorTheme" value="storybook" />
+            </label>
+            <label class="palette-choice" for="oceanPaletteChoice">
+              <span class="palette-choice-art palette-ocean-art" aria-hidden="true">🌊</span>
+              <span class="palette-choice-copy"><strong>Ocean</strong><small>Blue and aqua</small></span>
+              <input id="oceanPaletteChoice" type="radio" name="colorTheme" value="ocean" />
+            </label>
+            <label class="palette-choice" for="meadowPaletteChoice">
+              <span class="palette-choice-art palette-meadow-art" aria-hidden="true">🌱</span>
+              <span class="palette-choice-copy"><strong>Meadow</strong><small>Leafy green</small></span>
+              <input id="meadowPaletteChoice" type="radio" name="colorTheme" value="meadow" />
+            </label>
+            <label class="palette-choice" for="sunsetPaletteChoice">
+              <span class="palette-choice-art palette-sunset-art" aria-hidden="true">🌅</span>
+              <span class="palette-choice-copy"><strong>Sunset</strong><small>Peach and coral</small></span>
+              <input id="sunsetPaletteChoice" type="radio" name="colorTheme" value="sunset" />
+            </label>
+          </div>
+          <div class="palette-live-preview">
+            <div class="palette-live-preview-heading">
+              <div><strong>Live preview</strong><small>Choose a color to see it on a book and buttons.</small></div>
+              <span aria-hidden="true">&#10024;</span>
+            </div>
+            <article class="palette-preview-book-card" aria-hidden="true">
+              <span class="palette-preview-cover">&#128214;</span>
+              <span class="palette-preview-book-copy"><strong>The Paper Boat</strong><small>Adventure</small></span>
+              <span class="palette-preview-status">Ready to read</span>
+              <span class="palette-preview-actions">
+                <span class="palette-preview-button">Borrow this book</span>
+                <span class="palette-preview-button palette-preview-button-secondary">Details</span>
+              </span>
+            </article>
+          </div>
+        </fieldset>
         <div class="accessibility-settings-list">
           <fieldset class="text-size-settings-group" aria-describedby="textSizeDescription">
-            <legend>Reading text size</legend>
+            <legend class="settings-section-heading">
+              <span class="settings-section-icon settings-text-icon" aria-hidden="true">🔤</span>
+              <span class="settings-section-title">Choose text size</span>
+            </legend>
+            <p class="settings-section-description" id="textSizeDescription">Pick letters that feel easy to read.</p>
             <div class="text-size-choice-list">
               <label class="text-size-choice" for="normalTextChoice">
                 <span class="text-size-preview" aria-hidden="true">Aa</span>
@@ -323,24 +393,90 @@
                 <input id="extraLargeTextChoice" type="radio" name="textSize" value="extra-large" />
               </label>
             </div>
-            <p class="text-size-description" id="textSizeDescription">Choose a comfortable size. The app layout adjusts to fit your screen.</p>
           </fieldset>
           <label class="accessibility-option" for="highContrastToggle">
             <span class="accessibility-option-icon accessibility-contrast-icon" aria-hidden="true"><span></span></span>
-            <span class="accessibility-option-copy"><strong>Stronger color contrast</strong><small id="highContrastDescription">Make words, buttons, and outlines stand out.</small></span>
+            <span class="accessibility-option-copy"><strong>Make words easier to see</strong><small id="highContrastDescription">Use stronger colors on text and buttons.</small></span>
             <input id="highContrastToggle" type="checkbox" aria-describedby="highContrastDescription" />
           </label>
         </div>
-        <p class="accessibility-settings-status" id="accessibilitySettingsStatus" role="status" aria-live="polite">Changes apply right away.</p>
+        <p class="accessibility-settings-status" id="accessibilitySettingsStatus" role="status" aria-live="polite">Changes show right away.</p>
         <button class="submit-button accessibility-settings-done" type="button" data-close="accessibilitySettingsModal">Done</button>
+      </section>
+    </dialog>
+
+    <dialog class="modal reader-tour-modal settings-tour-modal" id="readingSettingsTourModal" aria-labelledby="settingsTourTitle">
+      <section class="modal-card reader-tour-card settings-tour-card">
+        <button class="modal-close" type="button" data-close="readingSettingsTourModal" aria-label="Close tour">&times;</button>
+        <div class="reader-tour-kicker">A QUICK SETTINGS TOUR</div>
+        <h2 id="settingsTourTitle" tabindex="-1">Make reading feel just right</h2>
+        <p class="reader-tour-intro">Four tiny tips. You can change these choices anytime.</p>
+        <div class="reader-tour-progress-copy" aria-live="polite"><span id="settingsTourStepLabel">Step 1 of 4</span><span>You are doing great!</span></div>
+        <div class="reader-tour-progress" id="settingsTourProgress" role="progressbar" aria-label="Reading settings tour progress" aria-valuemin="1" aria-valuemax="4" aria-valuenow="1"><span id="settingsTourProgressBar"></span></div>
+        <div class="reader-tour-slides" aria-live="polite" aria-atomic="true">
+          <article class="reader-tour-slide settings-tour-slide settings-tour-text-slide" data-settings-tour-step="0">
+            <div class="reader-tour-copy">
+              <p class="reader-tour-step-label">1. PICK YOUR TEXT SIZE</p>
+              <h3 tabindex="-1">Make letters bigger or smaller</h3>
+              <p>Tap each size to preview the same words.</p>
+            </div>
+            <div class="settings-tour-text-demo">
+              <div class="settings-tour-text-options" role="group" aria-label="Text size preview">
+                <button class="settings-tour-text-option" type="button" data-settings-tour-text-size="normal" aria-pressed="true">Normal</button>
+                <button class="settings-tour-text-option" type="button" data-settings-tour-text-size="large" aria-pressed="false">Large</button>
+                <button class="settings-tour-text-option" type="button" data-settings-tour-text-size="extra-large" aria-pressed="false">Extra-large</button>
+              </div>
+              <p class="settings-tour-text-sample" id="settingsTourTextSample" data-text-size="normal">The little fox.</p>
+            </div>
+          </article>
+          <article class="reader-tour-slide settings-tour-slide" data-settings-tour-step="1" hidden>
+            <div class="reader-tour-art settings-tour-illustration settings-tour-look-example" aria-hidden="true">
+              <span></span><span></span><span></span>
+            </div>
+            <div class="reader-tour-copy">
+              <p class="reader-tour-step-label">2. CHOOSE A LOOK</p>
+              <h3 tabindex="-1">Bright by day, cozy by night</h3>
+              <p>Light looks like a sunny page. Dark feels softer at night. Try Storybook, Ocean, Meadow, or Sunset colors.</p>
+            </div>
+          </article>
+          <article class="reader-tour-slide settings-tour-slide" data-settings-tour-step="2" hidden>
+            <div class="reader-tour-art settings-tour-illustration settings-tour-contrast-example" aria-hidden="true">
+              <span>Can you read me?</span>
+              <strong>Read me!</strong>
+            </div>
+            <div class="reader-tour-copy">
+              <p class="reader-tour-step-label">3. HELP WORDS STAND OUT</p>
+              <h3 tabindex="-1">Make words easier to spot</h3>
+              <p>Turn on stronger contrast to make words, buttons, and borders easier to see.</p>
+            </div>
+          </article>
+          <article class="reader-tour-slide settings-tour-slide" data-settings-tour-step="3" hidden>
+            <div class="reader-tour-art settings-tour-illustration settings-tour-language-example" aria-hidden="true">
+              <span>EN</span><span>FIL</span>
+            </div>
+            <div class="reader-tour-copy">
+              <p class="reader-tour-step-label">4. CHOOSE A LANGUAGE</p>
+              <h3 tabindex="-1">Read in words you know</h3>
+              <p>Choose English or Filipino. For example, <strong>Hello!</strong> can become <strong>Kumusta!</strong></p>
+            </div>
+          </article>
+        </div>
+        <div class="reader-tour-footer">
+          <button class="reader-tour-skip" id="settingsTourSkip" type="button">Skip tour</button>
+          <div class="reader-tour-actions">
+            <button class="cancel-button reader-tour-back" id="settingsTourBack" type="button" hidden>Back</button>
+            <button class="submit-button reader-tour-next" id="settingsTourNext" type="button">Next <span aria-hidden="true">&#8594;</span></button>
+            <button class="submit-button reader-tour-finish" id="settingsTourFinish" type="button" hidden>Finish tour</button>
+          </div>
+        </div>
       </section>
     </dialog>
 
     <dialog class="modal auth-modal" id="authModal" aria-labelledby="authTitle">
       <form id="authForm" class="modal-card auth-card">
         <div class="auth-brand"><span aria-hidden="true">📚</span> little<span>library</span></div>
-        <button class="accessibility-trigger auth-accessibility-trigger" id="authAccessibilitySettingsButton" type="button" aria-haspopup="dialog" aria-controls="accessibilitySettingsModal" aria-label="Open reading accessibility settings" title="Reading settings">
-          <span class="accessibility-trigger-icon" aria-hidden="true">Aa</span><span class="accessibility-trigger-label">Text &amp; colors</span>
+        <button class="accessibility-trigger auth-accessibility-trigger" id="authAccessibilitySettingsButton" type="button" aria-haspopup="dialog" aria-controls="accessibilitySettingsModal" aria-label="Open settings" title="Settings">
+          <span class="accessibility-trigger-icon" aria-hidden="true"><svg class="settings-gear-icon" viewBox="0 0 24 24" focusable="false"><path d="M19.14 12.94c.04-.31.06-.62.06-.94s-.02-.63-.07-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7.1 7.1 0 0 0-1.63-.95l-.36-2.54a.5.5 0 0 0-.5-.43h-3.84a.5.5 0 0 0-.5.43l-.36 2.54c-.59.23-1.14.55-1.63.95l-2.39-.96a.5.5 0 0 0-.61.22L2.52 8.84a.5.5 0 0 0 .12.64l2.03 1.58a7.43 7.43 0 0 0 0 1.88l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .61.22l2.39-.96c.49.4 1.04.72 1.63.95l.36 2.54a.5.5 0 0 0 .5.43h3.84a.5.5 0 0 0 .5-.43l.36-2.54c.59-.23 1.14-.55 1.63-.95l2.39.96a.5.5 0 0 0 .61-.22l1.92-3.32a.5.5 0 0 0-.12-.64zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></span><span class="accessibility-trigger-label">Settings</span>
         </button>
         <div class="modal-kicker" id="authKicker">WELCOME BACK</div>
         <h2 id="authTitle">Sign in to your library</h2>

@@ -1,6 +1,7 @@
 const STORAGE_KEY = "little-library-books-v1";
 const READER_TOUR_SEEN_KEY = "little-library-reader-tour-seen-v1";
 const ACCESSIBILITY_PREFERENCES_KEY = "little-library-accessibility-v1";
+const COLOR_THEMES = ["storybook", "ocean", "meadow", "sunset"];
 const passwordEyeIcon = '<svg class="password-toggle-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g class="password-eye-closed"><path class="password-eye-line" d="M3 7.5c2.1 4.8 5.2 8.2 9 8.2s6.9-3.4 9-8.2"/><path class="password-eye-lashes" d="m5.2 11.5-1.6 2.2M9.2 14.8l-.9 3.1m6.5-3.1.9 3.1m3.1-6.4 1.6 2.2"/></g><g class="password-eye-open"><path class="password-eye-line" d="M2.1 12C4.3 7.7 7.6 5 12 5s7.7 2.7 9.9 7C19.7 16.3 16.4 19 12 19S4.3 16.3 2.1 12Z"/><circle class="password-eye-pupil" cx="12" cy="12" r="3.1"/></g></svg>';
 const adminRoleIcon = '<svg class="admin-role-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="7" r="3" fill="currentColor"/><path d="M3.5 20v-1.2c0-3.1 2.5-5.6 5.5-5.6s5.5 2.5 5.5 5.6V20z" fill="currentColor"/><path d="m18.3 11.2.9 1.8 2 .3-1.4 1.4.3 2-1.8-.9-1.8.9.3-2-1.4-1.4 2-.3z" fill="currentColor" stroke="white" stroke-width=".7"/></svg>';
 
@@ -13,14 +14,539 @@ function loadAccessibilityPreferences() {
     return {
       textSize: savedTextSize,
       highContrast: saved.highContrast === true,
-      theme: saved.theme === "dark" ? "dark" : "light"
+      theme: saved.theme === "dark" ? "dark" : "light",
+      colorTheme: COLOR_THEMES.includes(saved.colorTheme) ? saved.colorTheme : "storybook",
+      language: saved.language === "fil" ? "fil" : "en"
     };
   } catch {
-    return { textSize: "normal", highContrast: false, theme: "light" };
+    return { textSize: "normal", highContrast: false, theme: "light", colorTheme: "storybook", language: "en" };
   }
 }
 
 let accessibilityPreferences = loadAccessibilityPreferences();
+
+const FILIPINO_TRANSLATIONS = {
+  "MY BOOKS": "AKING MGA AKLAT",
+  "All stories": "Lahat ng kuwento",
+  "All": "Lahat",
+  "Ready to read": "Handa nang basahin",
+  "Ready": "Handa na",
+  "Borrowed out": "Hiniram",
+  "Borrowed": "Hiniram",
+  "Overdue": "Lampas na",
+  "Due today": "Dapat ibalik ngayong araw",
+  "Due tomorrow": "Dapat ibalik bukas",
+  "loan": "hiram",
+  "loans": "mga hiram",
+  "STORY WORLDS": "MGA MUNDO NG KUWENTO",
+  "Reading takes you everywhere!": "Dinadala ka ng pagbabasa kahit saan!",
+  "Your shelf is saved here": "Naka-save dito ang iyong estante",
+  "My library": "Aking aklatan",
+  "All books": "Lahat ng aklat",
+  "Settings": "Mga Setting",
+  "Open settings": "Buksan ang mga setting",
+  "Take a quick tour": "Mabilis na paglilibot",
+  "A QUICK SETTINGS TOUR": "MABILIS NA PAGLILIBOT SA MGA SETTING",
+  "Make reading feel just right": "Gawing komportable ang pagbabasa",
+  "Four tiny tips. You can change these choices anytime.": "Apat na maikling tip. Puwede mong baguhin ang mga pinili anumang oras.",
+  "You are doing great!": "Ang galing mo!",
+  "1. PICK YOUR TEXT SIZE": "1. PUMILI NG LAKI NG TITIK",
+  "Make letters bigger or smaller": "Palakihin o paliitin ang mga titik",
+  "Tap each size to preview the same words.": "Pindutin ang bawat laki para silipin ang parehong mga salita.",
+  "The little fox.": "Ang munting soro.",
+  "Text size preview": "Silipin ang laki ng titik",
+  "2. CHOOSE A LOOK": "2. PUMILI NG ITSURA",
+  "Bright by day, cozy by night": "Maliwanag sa araw, banayad sa gabi",
+  "Light is like reading in daytime; Dark feels cozy at night. Try the Storybook, Ocean, Meadow, or Sunset colors.": "Parang nagbabasa sa araw ang Maliwanag; banayad sa gabi ang Madilim. Subukan ang mga kulay ng Kuwento, Karagatan, Luntiang parang, o Takipsilim.",
+  "3. HELP WORDS STAND OUT": "3. GAWING MAS LITAW ANG MGA SALITA",
+  "Make words easier to spot": "Gawing mas madaling makita ang mga salita",
+  "Turn on stronger contrast to make words and buttons easier to spot.": "Buksan ang mas matitingkad na kulay para mas madaling makita ang mga salita at button.",
+  "4. CHOOSE A LANGUAGE": "4. PUMILI NG WIKA",
+  "Read in words you know": "Magbasa sa wikang alam mo",
+  "Choose English or Filipino. The language menu changes page words, like Hello and Kumusta.": "Pumili ng Ingles o Filipino. Papalitan ng menu ng wika ang mga salita sa pahina, tulad ng Hello at Kumusta.",
+  "Reading settings tour progress": "Pag-usad ng gabay sa mga setting sa pagbasa",
+  "Finish tour": "Tapusin ang gabay",
+  "Signed in as": "Naka-sign in bilang",
+  "Reader": "Mambabasa",
+  "Sign out": "Mag-sign out",
+  "Sign out from Reader account": "Mag-sign out sa account ng Mambabasa",
+  "Sign out from Admin account": "Mag-sign out sa account ng Admin",
+  "OPEN A BOOK, OPEN A WORLD": "BUKASAN ANG AKLAT, BUKSAN ANG MUNDO",
+  "Welcome, book explorer": "Maligayang pagdating, tagahanap ng kuwento",
+  "Pick a story, meet a character, and let your imagination go!": "Pumili ng kuwento, makilala ang tauhan, at hayaang gumala ang iyong imahinasyon!",
+  "Show me how books work": "Ipakita kung paano gamitin ang aklatan",
+  "Set up recovery key": "Mag-set up ng recovery key",
+  "Replace recovery key": "Palitan ang recovery key",
+  "Account passwords": "Mga password ng account",
+  "Books on our shelf": "Mga aklat sa aming estante",
+  "A whole world of stories": "Buong mundong puno ng kuwento",
+  "Ready for a reader": "Handa na para sa mambabasa",
+  "Which one will you pick?": "Alin ang pipiliin mo?",
+  "Books borrowed": "Mga hiniram na aklat",
+  "Currently with students": "Nasa mga mag-aaral ngayon",
+  "BOOKS & RETURNS": "MGA AKLAT AT PAGBABALIK",
+  "Library snapshots": "Sulyap sa aklatan",
+  "A little look at favorite books and return rhythms.": "Tingnan ang mga paboritong aklat at kung kailan ito ibinabalik.",
+  "📚 Find borrowing history": "📚 Hanapin ang talaan ng mga hiniram",
+  "Most borrowed books": "Mga aklat na pinakamaraming hiniram",
+  "Reader favorites on our shelf": "Mga paborito ng mga mambabasa",
+  "Return patterns": "Mga tala sa pagbabalik",
+  "Did books come back on time?": "Naibalik ba ang mga aklat sa tamang oras?",
+  "On time": "Nasa tamang oras",
+  "Late": "Nahuli",
+  "Completed returns with due dates will show here.": "Lalabas dito ang mga naibalik na aklat na may takdang petsa.",
+  "No return data yet": "Wala pang tala ng pagbabalik",
+  "No completed returns with due dates yet": "Wala pang naibalik na aklat na may takdang petsa",
+  "RETURN CHECK": "PAGSUSURI NG PAGBABALIK",
+  "Books coming back": "Mga aklat na dapat ibalik",
+  "See what’s overdue and what’s due this week.": "Tingnan ang mga lampas na sa takdang balik at dapat ibalik ngayong linggo.",
+  "Next 7 days": "Sa susunod na 7 araw",
+  "By due date": "Ayon sa petsa ng pagbabalik",
+  "Overdue by student": "Mga lampas sa takdang balik ayon sa mag-aaral",
+  "Ready to come home": "Oras na para umuwi",
+  "Due this week": "Dapat ibalik ngayong linggo",
+  "Coming back soon": "Pauwi na sa lalong madaling panahon",
+  "Reminders by student": "Mga paalala ayon sa mag-aaral",
+  "Each reader’s overdue books are together in one place.": "Magkakasama rito ang mga aklat na lampas na sa takdang balik ng bawat mambabasa.",
+  "Past due": "Lampas na sa takdang petsa",
+  "Choose a story": "Pumili ng kuwento",
+  "Find your next favorite adventure!": "Hanapin ang susunod mong paboritong kuwento!",
+  "Add a story": "Magdagdag ng kuwento",
+  "books to explore": "aklat na puwedeng tuklasin",
+  "No stories found": "Walang nakitang kuwento",
+  "Manage your shelf": "Pamahalaan ang iyong estante",
+  "These books are past their return date.": "Lampas na sa petsa ng pagbabalik ang mga aklat na ito.",
+  "Add new books or remove books from the shelf.": "Magdagdag o mag-alis ng mga aklat sa estante.",
+  "These books are currently with a student.": "Nasa isang mag-aaral ngayon ang mga aklat na ito.",
+  "Pick a book to borrow and enjoy!": "Pumili ng aklat na hihiramin at babasahin!",
+  "Try another search, or add a new book to your shelf.": "Subukan ang ibang paghahanap o magdagdag ng aklat sa estante.",
+  "Show all books": "Ipakita ang lahat ng aklat",
+  "A whole world in every book": "May buong mundo sa bawat aklat",
+  "A NEW ADVENTURE IS JOINING": "MAY BAGONG KUWENTONG DUMARATING",
+  "Add a new story": "Magdagdag ng bagong kuwento",
+  "Add the details and give this book a happy home.": "Ilagay ang mga detalye at bigyan ng tahanan ang aklat na ito.",
+  "UPDATE THIS STORY": "I-UPDATE ANG KUWENTONG ITO",
+  "Edit book details": "I-edit ang mga detalye ng aklat",
+  "Update the details or choose a new cover picture.": "I-update ang mga detalye o pumili ng bagong larawan ng pabalat.",
+  "Save book changes": "I-save ang mga pagbabago",
+  "Book title": "Pamagat ng aklat",
+  "Author": "May-akda",
+  "Story world": "Uri ng kuwento",
+  "Picture Books": "Mga aklat na may larawan",
+  "Adventure": "Pakikipagsapalaran",
+  "Animals": "Mga hayop",
+  "Fairy Tales": "Kuwentong pambata",
+  "Learning": "Pag-aaral",
+  "Other": "Iba pa",
+  "Cover picture": "Larawan ng pabalat",
+  "optional": "opsyonal",
+  "Choose a cover picture": "Pumili ng larawan ng pabalat",
+  "JPG or PNG, up to 8 MB": "JPG o PNG, hanggang 8 MB",
+  "Browse": "Pumili",
+  "Add to my bookshelf": "Idagdag sa aking estante",
+  "Current cover is shown": "Ipinapakita ang kasalukuyang pabalat",
+  "Choose a new picture to replace it": "Pumili ng bagong larawang ipapalit",
+  "Picture preview ready": "Handa na ang paunang tingin sa larawan",
+  "LEND A BOOK TO A READER": "HUMIRAM NG AKLAT",
+  "Who is borrowing?": "Sino ang hihiram?",
+  "Add the student’s name and we’ll keep track until the book comes back.": "Ilagay ang pangalan ng mag-aaral para matandaan natin hanggang maibalik ang aklat.",
+  "Student’s name": "Pangalan ng mag-aaral",
+  "Bring it back by": "Ibalik bago sumapit ang",
+  "Lend this book": "Hiramin ang aklat na ito",
+  "LIBRARY ADMIN": "TAGAPAMAHALA NG AKLATAN",
+  "Remove this book?": "Alisin ang aklat na ito?",
+  "This will remove the book and its borrowing details from this shelf.": "Aalisin nito ang aklat at ang mga tala ng panghihiram nito sa estante.",
+  "Keep book": "Itago ang aklat",
+  "Remove book": "Alisin ang aklat",
+  "STORY SHELF MEMORIES": "MGA TALA SA ESTANTE",
+  "Borrowing history": "Talaan ng mga hiniram",
+  "Book borrowing history": "Talaan ng mga hiniram na aklat",
+  "Library borrowing history": "Talaan ng mga hiniram sa aklatan",
+  "Search book titles, then filter loans by student, date, and status.": "Hanapin ang pamagat ng aklat, saka salain ayon sa mag-aaral, petsa, o kalagayan.",
+  "All books in our library": "Lahat ng aklat sa aming aklatan",
+  "Student": "Mag-aaral",
+  "Borrowed from": "Hiniram mula",
+  "Borrowed through": "Hiniram hanggang",
+  "Loan status": "Kalagayan ng hiram",
+  "All statuses": "Lahat ng kalagayan",
+  "Returned": "Naibalik",
+  "Currently borrowed": "Kasalukuyang hiniram",
+  "returned": "naibalik",
+  "currently borrowed": "kasalukuyang hiniram",
+  "overdue": "lampas na sa takdang balik",
+  "Reading now": "Binabasa ngayon",
+  "Clear filters": "Alisin ang mga salaan",
+  "Filter borrowing history": "Salain ang talaan ng mga hiniram",
+  "Filter history by status": "Salain ang talaan ayon sa kalagayan",
+  "Type a student name": "I-type ang pangalan ng mag-aaral",
+  "Search book titles": "Maghanap ng pamagat ng aklat",
+  "MAKE READING COMFY": "Gawing komportable ang pagbabasa",
+  "Pick the colors and text you like best.": "Piliin ang mga kulay at laki ng titik na gusto mo.",
+  "Choose a language": "Pumili ng wika",
+  "Choose words that feel easy to read.": "Pumili ng wikang madaling basahin.",
+  "Language": "Wika",
+  "Choose a look": "Pumili ng itsura",
+  "Pick bright or cozy colors.": "Pumili ng maliwanag o banayad na mga kulay.",
+  "Light": "Maliwanag",
+  "Bright and sunny": "Maliwanag at masaya",
+  "Dark": "Madilim",
+  "Soft on your eyes": "Banayad sa iyong mga mata",
+  "Pick your story colors": "Pumili ng kulay ng kuwento",
+  "Choose the colors for your library.": "Piliin ang mga kulay ng iyong aklatan.",
+  "Live preview": "Paunang tingin",
+  "Choose a color to see it on a book and buttons.": "Pumili ng kulay para makita ang itsura nito sa aklat at mga button.",
+  "Storybook": "Kuwento",
+  "Purple and gold": "Lila at ginto",
+  "Ocean": "Karagatan",
+  "Blue and aqua": "Asul at bughaw-dagat",
+  "Meadow": "Luntiang parang",
+  "Leafy green": "Luntiang dahon",
+  "Sunset": "Takipsilim",
+  "Peach and coral": "Peach at korales",
+  "Choose text size": "Pumili ng laki ng titik",
+  "Pick letters that feel easy to read.": "Pumili ng mga titik na madaling basahin.",
+  "Normal": "Karaniwan",
+  "Large": "Malaki",
+  "Extra-large": "Napakalaki",
+  "Details": "Mga detalye",
+  "Make words easier to see": "Gawing mas madaling makita ang mga salita",
+  "Use stronger colors on text and buttons.": "Gumamit ng mas matingkad na kulay sa mga salita at button.",
+  "Changes show right away.": "Makikita agad ang mga pagbabago.",
+  "Changes show right away and save here.": "Makikita agad at mase-save dito ang mga pagbabago.",
+  "Saved here. You can change it anytime.": "Naka-save dito. Puwede mo itong baguhin anumang oras.",
+  "Your choices work, but this browser can't save them.": "Gagana ang mga pinili mo, pero hindi ito ma-save ng browser na ito.",
+  "Done": "Tapos na",
+  "Close settings": "Isara ang mga setting",
+  "WELCOME BACK": "MALIGAYANG PAGBABALIK",
+  "A NEW LIBRARY ADVENTURE": "BAGONG PAKIKIPAGSAPALARAN SA AKLATAN",
+  "Sign in to your library": "Mag-sign in sa iyong aklatan",
+  "Set up your library": "I-set up ang iyong aklatan",
+  "Choose your role and enter its password.": "Piliin kung Admin o Mambabasa ka, saka ilagay ang password.",
+  "Choose passwords for the Admin and shared Reader accounts.": "Pumili ng password para sa Admin at sa pinagsasaluhang account ng Mambabasa.",
+  "Admin": "Admin",
+  "Password": "Password",
+  "Forgot Reader password?": "Nakalimutan ang password ng Mambabasa?",
+  "Follow the checklist to create both accounts. You’ll save a recovery key at the end.": "Sundin ang listahan para gumawa ng dalawang account. I-save ang recovery key sa huli.",
+  "Account setup": "Pag-set up ng account",
+  "Account setup progress": "Pag-usad ng pag-set up ng account",
+  "Account setup checklist": "Listahan sa pag-set up ng account",
+  "Choose sign-in role": "Pumili ng uri ng pag-sign in",
+  "Admin password strength": "Tibay ng password ng Admin",
+  "Reader password strength": "Tibay ng password ng Mambabasa",
+  "New password strength": "Tibay ng bagong password",
+  "New Admin password strength": "Tibay ng bagong password ng Admin",
+  "New Reader password strength": "Tibay ng bagong password ng Mambabasa",
+  "Admin account": "Account ng Admin",
+  "Reader account": "Account ng Mambabasa",
+  "Admin password": "Password ng Admin",
+  "Reader password": "Password ng Mambabasa",
+  "Confirm Admin password": "Kumpirmahin ang password ng Admin",
+  "Confirm Reader password": "Kumpirmahin ang password ng Mambabasa",
+  "For the person who manages the library.": "Para sa taong namamahala sa aklatan.",
+  "To do": "Gagawin pa",
+  "In progress": "Ginagawa na",
+  "For readers who borrow and return books.": "Para sa mga mambabasang humihiram at nagbabalik ng aklat.",
+  "Shared Reader password": "Pinagsasaluhang password ng Mambabasa",
+  "Use at least 6 characters for each password.": "Gumamit ng hindi bababa sa 6 na character sa bawat password.",
+  "Complete the Admin account step to continue.": "Kumpletuhin muna ang hakbang para sa Admin account.",
+  "Create passwords and start": "Gumawa ng mga password at magsimula",
+  "Sign in as Reader": "Mag-sign in bilang Mambabasa",
+  "ACCOUNT RECOVERY": "PAGBAWI NG ACCOUNT",
+  "Reset Reader password": "I-reset ang password ng Mambabasa",
+  "Use the library recovery key saved during setup. The key can reset either account.": "Gamitin ang recovery key na na-save noong pag-set up. Puwede nitong i-reset ang alinmang account.",
+  "Library recovery key": "Recovery key ng aklatan",
+  "No recovery key? Ask an Admin to sign in and set one up.": "Walang recovery key? Hilingin sa Admin na mag-sign in at gumawa nito.",
+  "New password": "Bagong password",
+  "Confirm new password": "Kumpirmahin ang bagong password",
+  "Reset password": "I-reset ang password",
+  "ADMIN ACCOUNT SAFETY": "KALIGTASAN NG ADMIN ACCOUNT",
+  "Set up account recovery": "I-set up ang pag-recover ng account",
+  "Create a private key that can reset either library password.": "Gumawa ng pribadong key na makakapag-reset ng alinmang password sa aklatan.",
+  "A new key will replace the old one. Save the new key somewhere private so you can reset either password.": "Papalitan ng bagong key ang luma. Itago ang bagong key sa pribadong lugar para ma-reset mo ang alinmang password.",
+  "Create a private key that can reset either library password. Save it somewhere safe. It will only be shown once.": "Gumawa ng pribadong key para ma-reset ang alinmang password sa aklatan. Itago ito nang ligtas. Isang beses lang ito ipapakita.",
+  "Replace the recovery key?": "Palitan ang recovery key?",
+  "Not now": "Mamaya na",
+  "Create recovery key": "Gumawa ng recovery key",
+  "Keep it somewhere private. It can reset the Admin or shared Reader password. This key is shown only once.": "Itago ito sa pribadong lugar. Puwede nitong i-reset ang password ng Admin o Mambabasa. Isang beses lang ito ipapakita.",
+  "Your recovery key": "Iyong recovery key",
+  "Copy": "Kopyahin",
+  "I saved the key": "Na-save ko na ang key",
+  "Save this recovery key": "I-save ang recovery key na ito",
+  "ADMIN ACCOUNT SETTINGS": "MGA SETTING NG ADMIN ACCOUNT",
+  "Update the password for the person managing the library or for everyone who signs in as Reader.": "Palitan ang password ng namamahala sa aklatan o ng lahat ng nag-sign in bilang Mambabasa.",
+  "Confirm your current password first. This session stays signed in; other Admin sessions will need the new password.": "Kumpirmahin muna ang kasalukuyang password. Mananatiling naka-sign in dito; gagamit ng bagong password ang ibang Admin.",
+  "Current Admin password": "Kasalukuyang password ng Admin",
+  "New Admin password": "Bagong password ng Admin",
+  "Confirm new Admin password": "Kumpirmahin ang bagong password ng Admin",
+  "Change Admin password": "Palitan ang password ng Admin",
+  "Choose a new password for all Readers. They will need to sign in again afterward.": "Pumili ng bagong password para sa lahat ng Mambabasa. Kailangan nilang mag-sign in muli.",
+  "New Reader password": "Bagong password ng Mambabasa",
+  "Confirm new Reader password": "Kumpirmahin ang bagong password ng Mambabasa",
+  "Change Reader password": "Palitan ang password ng Mambabasa",
+  "Close account password settings": "Isara ang mga setting ng password",
+  "YOUR LIBRARY ADVENTURE": "ANG IYONG PAKIKIPAGSAPALARAN SA AKLATAN",
+  "Three little steps to story time": "Tatlong simpleng hakbang para magbasa",
+  "Here’s how to find a book, take it on an adventure, and bring it back.": "Ganito maghanap, humiram, at magbalik ng aklat.",
+  "You’re doing great!": "Ang galing mo!",
+  "1. FIND A STORY": "1. MAGHANAP NG KUWENTO",
+  "Pick your next adventure": "Piliin ang susunod mong pakikipagsapalaran",
+  "Search for a book or author, or choose a Story World. Look for a book marked": "Maghanap ng aklat o may-akda, o pumili ng uri ng kuwento. Hanapin ang aklat na may markang",
+  "2. BORROW A BOOK": "2. HUMIRAM NG AKLAT",
+  "Take a story with you": "Mag-uwi ng kuwento",
+  "Press": "Pindutin ang",
+  "Borrow this book": "Hiramin ang aklat na ito",
+  ", then add your name so your teacher knows who is reading it. You can add a return date too.": ", saka ilagay ang pangalan mo para malaman ng guro kung sino ang nagbabasa. Puwede ka ring maglagay ng petsa ng pagbabalik.",
+  "3. RETURN A BOOK": "3. MAGBALIK NG AKLAT",
+  "Make room for another reader": "Magbigay-daan sa susunod na mambabasa",
+  "When you finish, find your book under": "Kapag tapos ka na, hanapin ang aklat sa",
+  "and press": "at pindutin ang",
+  "Mark as returned": "Markahang naibalik na",
+  ". Now it is ready for a new adventure!": ". Handa na ito para sa bagong mambabasa!",
+  "Skip tour": "Laktawan ang gabay",
+  "Back": "Bumalik",
+  "Next": "Susunod",
+  "Let’s read!": "Magbasa na tayo!",
+  "Main navigation": "Pangunahing menu",
+  "Little Library home": "Pangunahing pahina ng Little Library",
+  "Filter by category": "Salain ayon sa uri",
+  "Library summary": "Buod ng aklatan",
+  "Choose a reminder view": "Pumili ng paalala",
+  "Search for a story or author...": "Maghanap ng kuwento o may-akda...",
+  "Search for a story or author": "Maghanap ng kuwento o may-akda",
+  "Close": "Isara",
+  "e.g. The Very Hungry Caterpillar": "hal. The Very Hungry Caterpillar",
+  "Who wrote it?": "Sino ang sumulat nito?",
+  "Type the student’s name": "I-type ang pangalan ng mag-aaral",
+  "Close password recovery": "Isara ang pag-recover ng password",
+  "Close recovery key": "Isara ang recovery key",
+  "One-time library recovery key": "Isang beses lang ipapakitang recovery key ng aklatan",
+  "Close tour": "Isara ang gabay",
+  "Library tour progress": "Pag-usad ng gabay sa aklatan",
+  "Show password": "Ipakita ang password",
+  "Hide password": "Itago ang password",
+  "Enter a password to check its strength.": "Maglagay ng password para masukat ang tibay nito.",
+  "Almost there — use at least 6 characters.": "Malapit na — gumamit ng hindi bababa sa 6 na character.",
+  "Good start! A longer password is stronger.": "Magandang simula! Mas matibay ang mas mahabang password.",
+  "Nice and strong!": "Matibay na iyan!",
+  "Super strong!": "Napakatibay!",
+  "Repeat the password to check it matches.": "Ulitin ang password para malaman kung magkatugma.",
+  "Type it again to check for a match.": "I-type ulit para malaman kung magkatugma.",
+  "Enter the Admin password first.": "Ilagay muna ang password ng Admin.",
+  "Enter the Reader password first.": "Ilagay muna ang password ng Mambabasa.",
+  "The passwords match!": "Magkatugma ang mga password!",
+  "The passwords do not match yet.": "Hindi pa magkatugma ang mga password.",
+  "The Admin passwords do not match.": "Hindi magkatugma ang mga password ng Admin.",
+  "The Reader passwords do not match.": "Hindi magkatugma ang mga password ng Mambabasa.",
+  "The local library server could not be reached.": "Hindi maabot ang server ng aklatan.",
+  "That library action could not be completed.": "Hindi natapos ang kilos na iyon sa aklatan.",
+  "Please sign in again.": "Mag-sign in muli.",
+  "This action is not allowed for your account.": "Hindi puwede ang kilos na ito sa iyong account.",
+  "That password did not match. Please try again.": "Hindi tugma ang password. Subukan ulit.",
+  "Too many tries. Please wait 30 seconds and try again.": "Masyadong maraming pagsubok. Maghintay ng 30 segundo at subukan ulit.",
+  "Choose Admin or Reader.": "Piliin ang Admin o Mambabasa.",
+  "Set up the library before signing in.": "I-set up muna ang aklatan bago mag-sign in.",
+  "Set up the library before recovering an account.": "I-set up muna ang aklatan bago i-recover ang account.",
+  "A recovery key has not been set up. Ask an Admin to sign in and create one first.": "Wala pang recovery key. Hilingin sa Admin na mag-sign in at gumawa muna nito.",
+  "That recovery key did not match. Check it and try again.": "Hindi tugma ang recovery key. Suriin ito at subukan ulit.",
+  "That book is no longer on the shelf.": "Wala na sa estante ang aklat na iyon.",
+  "That book has already been borrowed.": "May humiram na sa aklat na iyon.",
+  "That book is already on the shelf.": "Nasa estante na ang aklat na iyon.",
+  "Add a student name of up to 60 characters.": "Ilagay ang pangalan ng mag-aaral na hanggang 60 character.",
+  "Choose a valid due date.": "Pumili ng wastong petsa ng pagbabalik.",
+  "Choose one of the listed book categories.": "Pumili ng uri mula sa listahan.",
+  "The current Admin password did not match. Please try again.": "Hindi tugma ang kasalukuyang password ng Admin. Subukan ulit.",
+  "The library has already been set up.": "Na-set up na ang aklatan.",
+  "The cover picture must be a small JPEG image.": "Pumili ng maliit na JPEG na larawan para sa pabalat.",
+  "The cover picture data is not valid.": "Hindi wasto ang datos ng larawan ng pabalat.",
+  "Each book needs a title of 1 to 80 characters.": "Kailangan ng pamagat na may 1 hanggang 80 character ang bawat aklat.",
+  "An author name is too long.": "Masyadong mahaba ang pangalan ng may-akda.",
+  "A student name is too long.": "Masyadong mahaba ang pangalan ng mag-aaral.",
+  "A due date must use year-month-day format.": "Gamitin ang format na taon-buwan-araw sa petsa ng pagbabalik.",
+  "A title must be between 1 and 80 characters.": "Dapat may 1 hanggang 80 character ang pamagat.",
+  "An author name can have up to 60 characters.": "Hanggang 60 character lang dapat ang pangalan ng may-akda.",
+  "The initial shelf has too many books.": "Napakaraming aklat sa unang estante.",
+  "Copy failed.": "Hindi nakopya ang key.",
+  "Use at least 6 characters for the new password.": "Gumamit ng hindi bababa sa 6 na character sa bagong password.",
+  "Use at least 6 characters for the new Admin password.": "Gumamit ng hindi bababa sa 6 na character sa bagong password ng Admin.",
+  "Use at least 6 characters for the new Reader password.": "Gumamit ng hindi bababa sa 6 na character sa bagong password ng Mambabasa.",
+  "The new passwords do not match yet.": "Hindi pa magkatugma ang mga bagong password.",
+  "The Admin passwords do not match yet.": "Hindi pa magkatugma ang mga password ng Admin.",
+  "The Reader passwords do not match yet.": "Hindi pa magkatugma ang mga password ng Mambabasa.",
+  "First, set an Admin password and confirm it.": "Una, magtakda at magkumpirma ng password para sa Admin.",
+  "The Admin password is ready. Next, set a shared Reader password.": "Handa na ang password ng Admin. Sunod, magtakda ng pinagsasaluhang password ng Mambabasa.",
+  "Both accounts are ready! You can start your library.": "Handa na ang dalawang account! Simulan na ang iyong aklatan.",
+  "Enter the library recovery key, then choose a new password.": "Ilagay ang recovery key ng aklatan, saka pumili ng bagong password.",
+  "Recovery key copied. Keep it somewhere private.": "Nakopya ang recovery key. Itago ito sa pribadong lugar.",
+  "The key is selected. Copy it and keep it somewhere private.": "Napili ang key. Kopyahin at itago ito sa pribadong lugar.",
+  "Updating password...": "Pinapalitan ang password...",
+  "Admin password updated. This session is still signed in.": "Napaltan ang password ng Admin. Naka-sign in ka pa rin.",
+  "Reader password updated. Readers will need to sign in again.": "Napaltan ang password ng Mambabasa. Kailangang mag-sign in muli ang mga Mambabasa.",
+  "You have signed out. Choose a role to sign back in.": "Nag-sign out ka na. Pumili ng account para mag-sign in muli.",
+  "The date range needs a quick check.": "Pakisuri ang saklaw ng mga petsa.",
+  "No loans match these filters. Try another book title, student, or date range.": "Walang hiram na tugma sa mga salaan. Subukan ang ibang pamagat, mag-aaral, o petsa.",
+  "No borrowing records for this book yet.": "Wala pang tala ng panghihiram para sa aklat na ito.",
+  "No borrowing records in this library yet.": "Wala pang tala ng panghihiram sa aklatang ito.",
+  "Date not recorded": "Hindi naitala ang petsa",
+  "Due date not recorded": "Hindi naitala ang petsa ng pagbabalik",
+  "No overdue books. Hooray!": "Walang aklat na lampas sa takdang balik. Yehey!",
+  "No books due in the next 7 days.": "Walang aklat na kailangang ibalik sa susunod na 7 araw.",
+  "No student reminders right now. Hooray!": "Walang paalala para sa mag-aaral ngayon. Yehey!",
+  "Student name not recorded": "Hindi naitala ang pangalan ng mag-aaral",
+  "Author not added": "Wala pang may-akda",
+  "a student": "isang mag-aaral",
+  "Out exploring": "Nasa pakikipagsapalaran",
+  "Reading with": "Binabasa ni",
+  "Borrow a book to start our reader favorites list.": "Humiram ng aklat para makapagsimula ang listahan ng mga paborito.",
+  "Back by": "Ibalik bago",
+  "You can borrow it when it returns.": "Puwede mo itong hiramin kapag naibalik na.",
+  "Please add the student's name.": "Ilagay ang pangalan ng mag-aaral.",
+  "That picture is too big. Please choose one under 8 MB.": "Masyadong malaki ang larawang iyon. Pumili ng larawang mas maliit sa 8 MB.",
+  "Could not read that picture.": "Hindi mabasa ang larawang iyon.",
+  "That picture could not be opened.": "Hindi mabuksan ang larawang iyon.",
+  "Book details updated!": "Na-update ang mga detalye ng aklat!",
+  "A new story found its way to your shelf!": "May bagong kuwentong dumating sa iyong estante!",
+  "That book is back on the shelf!": "Naibalik na ang aklat sa estante!",
+  "Borrowing history for": "Talaan ng mga hiniram para sa",
+  "View borrowing history for": "Tingnan ang talaan ng mga hiniram para sa",
+  "Mark": "Markahan",
+  "as returned": "bilang naibalik na",
+  "Edit": "I-edit",
+  "Remove": "Alisin",
+  "A GOOD STORY": "MAGANDANG KUWENTO",
+  "Cover of": "Pabalat ng",
+  "Preview of": "Paunang tingin sa",
+  "Current cover for": "Kasalukuyang pabalat para sa",
+  "No books due": "Walang aklat na dapat ibalik",
+  "No loans match": "Walang tugmang hiram",
+  "That library page was not found.": "Hindi nakita ang pahinang iyon ng aklatan."
+};
+
+const localizedTextState = new WeakMap();
+const localizedAttributeState = new WeakMap();
+const LOCALIZED_ATTRIBUTES = ["placeholder", "aria-label", "aria-valuetext", "title", "alt"];
+
+function currentLocale() {
+  return accessibilityPreferences.language === "fil" ? "fil-PH" : "en-US";
+}
+
+function translateUiText(source) {
+  if (accessibilityPreferences.language !== "fil") return source;
+  const trimmed = source.trim();
+  const leading = source.match(/^\s*/)?.[0] || "";
+  const trailing = source.match(/\s*$/)?.[0] || "";
+  let translated = FILIPINO_TRANSLATIONS[trimmed];
+  if (translated === undefined) {
+    let match;
+    if ((match = /^(\d+) days? overdue$/.exec(trimmed))) translated = `${match[1]} araw nang lampas sa takdang balik`;
+    else if ((match = /^Due in (\d+) days?$/.exec(trimmed))) translated = `Ibalik sa loob ng ${match[1]} araw`;
+    else if ((match = /^(\d+) loans?$/.exec(trimmed))) translated = `${match[1]} na hiram`;
+    else if ((match = /^(\d+) loans? found$/.exec(trimmed))) translated = `May nakitang ${match[1]} na hiram`;
+    else if ((match = /^(\d+) books? overdue$/.exec(trimmed))) translated = `${match[1]} aklat na lampas sa takdang balik`;
+    else if ((match = /^Step (\d+) of (\d+)$/.exec(trimmed))) translated = `Hakbang ${match[1]} sa ${match[2]}`;
+    else if ((match = /^(\d+) of (\d+) steps complete$/.exec(trimmed))) translated = `Kumpleto ang ${match[1]} sa ${match[2]} hakbang`;
+    else if ((match = /^With (.+)$/.exec(trimmed))) translated = `Hawak ni ${match[1]}`;
+    else if ((match = /^Back by (.+)$/.exec(trimmed))) translated = `Ibalik bago ${match[1]}`;
+    else if ((match = /^Borrowed (.+) \u00b7 Due back (.+?)(?: \u00b7 Returned (.+))?$/.exec(trimmed))) translated = `Hiniram noong ${match[1]} \u00b7 Ibalik sa ${match[2]}${match[3] ? ` \u00b7 Naibalik noong ${match[3]}` : ""}`;
+    else if ((match = /^Borrowed (.+) \u00b7 Due date not recorded(?: \u00b7 Returned (.+))?$/.exec(trimmed))) translated = `Hiniram noong ${match[1]} \u00b7 Hindi naitala ang petsa ng pagbabalik${match[2] ? ` \u00b7 Naibalik noong ${match[2]}` : ""}`;
+    else if ((match = /^· Back by (.+)$/.exec(trimmed))) translated = `· Ibalik bago ${match[1]}`;
+    else if ((match = /^Due back (.+)$/.exec(trimmed))) translated = `Ibalik sa ${match[1]}`;
+    else if ((match = /^· Returned (.+)$/.exec(trimmed))) translated = `· Naibalik noong ${match[1]}`;
+    else if ((match = /^Borrowed (.+)$/.exec(trimmed))) translated = `Hiniram noong ${match[1]}`;
+    else if ((match = /^Cover of (.+)$/.exec(trimmed))) translated = `Pabalat ng ${match[1]}`;
+    else if ((match = /^Preview of (.+)$/.exec(trimmed))) translated = `Paunang tingin sa ${match[1]}`;
+    else if ((match = /^Current cover for (.+)$/.exec(trimmed))) translated = `Kasalukuyang pabalat para sa ${match[1]}`;
+    else if ((match = /^Show (.+) passwords?$/.exec(trimmed))) translated = `Ipakita ang ${match[1]} na password`;
+    else if ((match = /^Hide (.+) passwords?$/.exec(trimmed))) translated = `Itago ang ${match[1]} na password`;
+    else if ((match = /^Borrowing history for (.+)$/.exec(trimmed))) translated = `Talaan ng mga hiniram para sa ${match[1]}`;
+    else if ((match = /^View borrowing history for (.+)$/.exec(trimmed))) translated = `Tingnan ang talaan ng mga hiniram para sa ${match[1]}`;
+    else if ((match = /^Edit (.+)$/.exec(trimmed))) translated = `I-edit ang ${match[1]}`;
+    else if ((match = /^Remove (.+)$/.exec(trimmed))) translated = `Alisin ang ${match[1]}`;
+    else if ((match = /^Mark (.+) as returned$/.exec(trimmed))) translated = `Markahan ang ${match[1]} bilang naibalik na`;
+    else if ((match = /^Sign in as (Admin|Reader)$/.exec(trimmed))) translated = `Mag-sign in bilang ${match[1] === "Reader" ? "Mambabasa" : "Admin"}`;
+    else if ((match = /^Forgot (Admin|Reader) password\?$/.exec(trimmed))) translated = `Nakalimutan ang password ng ${match[1] === "Reader" ? "Mambabasa" : "Admin"}?`;
+    else if ((match = /^Reset (Admin|Reader) password$/.exec(trimmed))) translated = `I-reset ang password ng ${match[1] === "Reader" ? "Mambabasa" : "Admin"}`;
+    else if ((match = /^Enter the library recovery key, then choose a new (Admin|Reader) password\.$/.exec(trimmed))) translated = `Ilagay ang recovery key ng aklatan, saka pumili ng bagong password ng ${match[1] === "Reader" ? "Mambabasa" : "Admin"}.`;
+    else if ((match = /^(.+) is back on the shelf!$/.exec(trimmed))) translated = `Naibalik na sa estante ang ${match[1]}!`;
+    else if ((match = /^(.+) was removed from the shelf\.$/.exec(trimmed))) translated = `Inalis ang ${match[1]} sa estante.`;
+    else if ((match = /^(.+) has been lent to (.+)\.$/.exec(trimmed))) translated = `Ipinahiram ang ${match[1]} kay ${match[2]}.`;
+    else if ((match = /^(.+) password updated\. Sign in with your new password\.$/.exec(trimmed))) translated = `Napaltan ang password ng ${match[1]}. Mag-sign in gamit ang bagong password.`;
+    else if ((match = /^(\d+)% of (\d+) completed returns were on time; (\d+)% were late\.$/.exec(trimmed))) translated = `${match[1]}% sa ${match[2]} naibalik na aklat ay nasa oras; ${match[3]}% ang nahuli.`;
+    else if ((match = /^Based on (\d+) completed returns? with due dates\.$/.exec(trimmed))) translated = `Batay sa ${match[1]} na pagbabalik na may takdang petsa.`;
+    else if ((match = /^Based on (\d+) completed returns?; (\d+) records? (?:is|are) missing a usable due date\.$/.exec(trimmed))) translated = `Batay sa ${match[1]} na pagbabalik; walang wastong takdang petsa ang ${match[2]} tala.`;
+    else if ((match = /^(\d+) completed returns? needs? a due date before its timing can be shown\.$/.exec(trimmed))) translated = `Kailangan ng takdang petsa ang ${match[1]} pagbabalik bago maipakita kung nahuli ito.`;
+  }
+  return translated === undefined ? source : `${leading}${translated}${trailing}`;
+}
+
+function translateTextNode(node) {
+  if (node.parentElement?.closest(".book-title, .book-author, .selected-book, .borrow-details strong, .history-entry-copy strong, .popular-book-copy strong, .due-book-copy strong, .student-reminder-copy strong")) return;
+  let state = localizedTextState.get(node);
+  if (!state) {
+    state = { original: node.nodeValue, translated: null };
+    localizedTextState.set(node, state);
+  } else if (node.nodeValue !== state.translated) {
+    state.original = node.nodeValue;
+  }
+  const translated = translateUiText(state.original);
+  if (node.nodeValue !== translated) node.nodeValue = translated;
+  state.translated = translated;
+}
+
+function translateElementAttributes(element) {
+  for (const name of LOCALIZED_ATTRIBUTES) {
+    if (!element.hasAttribute(name)) continue;
+    let states = localizedAttributeState.get(element);
+    if (!states) {
+      states = new Map();
+      localizedAttributeState.set(element, states);
+    }
+    const current = element.getAttribute(name);
+    let state = states.get(name);
+    if (!state) {
+      state = { original: current, translated: null };
+      states.set(name, state);
+    } else if (current !== state.translated) {
+      state.original = current;
+    }
+    const translated = translateUiText(state.original);
+    if (current !== translated) element.setAttribute(name, translated);
+    state.translated = translated;
+  }
+}
+
+function translateSubtree(root) {
+  if (root.nodeType === Node.TEXT_NODE) {
+    translateTextNode(root);
+    return;
+  }
+  if (root.nodeType !== Node.ELEMENT_NODE && root !== document.body) return;
+  if (root.nodeType === Node.ELEMENT_NODE) translateElementAttributes(root);
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
+    if (node.nodeType === Node.TEXT_NODE) translateTextNode(node);
+    else translateElementAttributes(node);
+  }
+}
+
+const languageObserver = new MutationObserver((records) => {
+  records.forEach((record) => {
+    if (record.type === "characterData") translateTextNode(record.target);
+    if (record.type === "attributes") translateElementAttributes(record.target);
+    record.addedNodes?.forEach(translateSubtree);
+  });
+});
+
+function applyLanguagePreference() {
+  document.documentElement.lang = accessibilityPreferences.language === "fil" ? "fil" : "en";
+  document.title = accessibilityPreferences.language === "fil" ? "Maliit na Aklatan — Estante ng mga Kuwento" : "Little Library — Story Shelf";
+  document.getElementById("languageChoice").value = accessibilityPreferences.language;
+  translateSubtree(document.body);
+  updateTodayLabel();
+}
+
+translateSubtree(document.body);
+languageObserver.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeOldValue: true, attributeFilter: LOCALIZED_ATTRIBUTES });
 
 function dateOffsetFromToday(offset) {
   const date = new Date();
@@ -57,6 +583,7 @@ let coverPreviewObjectUrl = null;
 let toastTimeout;
 let selectedLoginRole = "reader";
 let readerTourStep = 0;
+let settingsTourStep = 0;
 let recoveryConfigured = false;
 
 const grid = document.getElementById("booksGrid");
@@ -91,21 +618,28 @@ function setPasswordToggleState(button, isVisible) {
 }
 
 function applyAccessibilityPreferences() {
+  applyLanguagePreference();
+  document.documentElement.dataset.colorTheme = accessibilityPreferences.colorTheme;
   document.documentElement.classList.toggle("dark-mode", accessibilityPreferences.theme === "dark");
   document.documentElement.classList.toggle("large-text-mode", accessibilityPreferences.textSize !== "normal");
   document.documentElement.classList.toggle("extra-large-text-mode", accessibilityPreferences.textSize === "extra-large");
   document.documentElement.classList.toggle("high-contrast-mode", accessibilityPreferences.highContrast);
   document.querySelector(`input[name="themeMode"][value="${accessibilityPreferences.theme}"]`).checked = true;
+  document.querySelector(`input[name="colorTheme"][value="${accessibilityPreferences.colorTheme}"]`).checked = true;
   document.querySelector(`input[name="textSize"][value="${accessibilityPreferences.textSize}"]`).checked = true;
   document.getElementById("highContrastToggle").checked = accessibilityPreferences.highContrast;
-  document.querySelector('meta[name="theme-color"]').content = accessibilityPreferences.theme === "dark" ? "#171827" : "#fff9ec";
+  document.querySelector('meta[name="theme-color"]').content = accessibilityPreferences.theme === "dark"
+    ? accessibilityPreferences.highContrast ? "#080912" : "#171827"
+    : accessibilityPreferences.highContrast ? "#ffffff" : "#fff9ec";
 }
 
 function saveAccessibilityPreferences() {
   const textSize = document.querySelector('input[name="textSize"]:checked').value;
   accessibilityPreferences = {
     theme: document.querySelector('input[name="themeMode"]:checked').value,
+    colorTheme: document.querySelector('input[name="colorTheme"]:checked').value,
     textSize,
+    language: document.getElementById("languageChoice").value,
     largerText: textSize !== "normal",
     highContrast: document.getElementById("highContrastToggle").checked
   };
@@ -113,15 +647,15 @@ function saveAccessibilityPreferences() {
   const status = document.getElementById("accessibilitySettingsStatus");
   try {
     localStorage.setItem(ACCESSIBILITY_PREFERENCES_KEY, JSON.stringify(accessibilityPreferences));
-    status.textContent = "Saved on this device. You can change these settings anytime.";
+    status.textContent = "Saved here. You can change it anytime.";
   } catch {
-    status.textContent = "Your choices work now, but this browser could not save them.";
+    status.textContent = "Your choices work, but this browser can't save them.";
   }
 }
 
 function openAccessibilitySettings() {
   applyAccessibilityPreferences();
-  document.getElementById("accessibilitySettingsStatus").textContent = "Changes apply right away and are saved on this device.";
+  document.getElementById("accessibilitySettingsStatus").textContent = "Changes show right away and save here.";
   openModal(document.getElementById("accessibilitySettingsModal"));
   document.querySelector('input[name="themeMode"]:checked').focus({ preventScroll: true });
 }
@@ -373,6 +907,38 @@ function openReaderTour() {
   document.getElementById("readerTourTitle").focus();
 }
 
+function updateSettingsTourStep(step, focusHeading = true) {
+  const slides = [...document.querySelectorAll("[data-settings-tour-step]")];
+  settingsTourStep = Math.max(0, Math.min(step, slides.length - 1));
+  slides.forEach((slide, index) => { slide.hidden = index !== settingsTourStep; });
+
+  const stepNumber = settingsTourStep + 1;
+  document.getElementById("settingsTourStepLabel").textContent = `Step ${stepNumber} of ${slides.length}`;
+  document.getElementById("settingsTourProgress").setAttribute("aria-valuenow", String(stepNumber));
+  document.getElementById("settingsTourProgressBar").style.width = `${stepNumber / slides.length * 100}%`;
+  document.getElementById("settingsTourBack").hidden = settingsTourStep === 0;
+  document.getElementById("settingsTourSkip").hidden = settingsTourStep === slides.length - 1;
+  document.getElementById("settingsTourNext").hidden = settingsTourStep === slides.length - 1;
+  document.getElementById("settingsTourFinish").hidden = settingsTourStep !== slides.length - 1;
+
+  if (focusHeading) slides[settingsTourStep].querySelector("h3").focus();
+}
+
+function updateSettingsTourTextPreview(size) {
+  const previewSize = ["normal", "large", "extra-large"].includes(size) ? size : "normal";
+  document.querySelectorAll("[data-settings-tour-text-size]").forEach((button) => {
+    button.setAttribute("aria-pressed", String(button.dataset.settingsTourTextSize === previewSize));
+  });
+  document.getElementById("settingsTourTextSample").dataset.textSize = previewSize;
+}
+
+function openSettingsTour() {
+  updateSettingsTourTextPreview(accessibilityPreferences.textSize);
+  updateSettingsTourStep(0, false);
+  openModal(document.getElementById("readingSettingsTourModal"));
+  document.getElementById("settingsTourTitle").focus();
+}
+
 function lockApp() {
   document.querySelectorAll("dialog[open]").forEach(closeModal);
   selectedBookId = null;
@@ -415,14 +981,14 @@ function formatDueDate(dateString) {
   if (!dateString) return "";
   const date = new Date(`${dateString}T00:00:00`);
   if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(date);
+  return new Intl.DateTimeFormat(currentLocale(), { month: "short", day: "numeric" }).format(date);
 }
 
 function formatHistoryDate(dateString) {
   if (!dateString) return "Date not recorded";
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return "Date not recorded";
-  return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" }).format(date);
+  return new Intl.DateTimeFormat(currentLocale(), { month: "short", day: "numeric", year: "numeric" }).format(date);
 }
 
 function historyDateKey(dateString) {
@@ -800,7 +1366,7 @@ function renderRoleControls() {
   document.getElementById("readerTourButton").hidden = isAdmin;
   const recoveryButton = document.getElementById("manageRecoveryButton");
   recoveryButton.hidden = !isAdmin;
-  recoveryButton.textContent = recoveryConfigured ? "🔐 Replace recovery key" : "🔐 Set up recovery key";
+  recoveryButton.innerHTML = `<span aria-hidden="true">🔐</span><span>${recoveryConfigured ? "Replace recovery key" : "Set up recovery key"}</span>`;
   document.getElementById("manageAccountPasswordsButton").hidden = !isAdmin;
 }
 
@@ -821,16 +1387,16 @@ function bookCard(book) {
   let action;
   if (currentRole === "admin") {
     const returnAction = borrowed
-      ? `<button class="book-action return-action" type="button" data-return="${escapeHtml(book.id)}" aria-label="Mark ${escapeHtml(book.title)} as returned">↩ Mark as returned</button>`
+      ? `<button class="book-action return-action" type="button" data-return="${escapeHtml(book.id)}" aria-label="Mark ${escapeHtml(book.title)} as returned">↩ <span>Mark as returned</span></button>`
       : "";
-    action = `<div class="admin-book-actions" data-admin-only><button class="book-action edit-action" type="button" data-edit="${escapeHtml(book.id)}" aria-label="Edit ${escapeHtml(book.title)}">✏️ Edit</button><button class="book-action remove-action" type="button" data-remove="${escapeHtml(book.id)}" aria-label="Remove ${escapeHtml(book.title)}">🗑 Remove</button>${returnAction}</div>`;
+    action = `<div class="admin-book-actions" data-admin-only><button class="book-action edit-action" type="button" data-edit="${escapeHtml(book.id)}" aria-label="Edit ${escapeHtml(book.title)}">✏️ <span>Edit</span></button><button class="book-action remove-action" type="button" data-remove="${escapeHtml(book.id)}" aria-label="Remove ${escapeHtml(book.title)}">🗑 <span>Remove</span></button>${returnAction}</div>`;
   } else if (borrowed) {
     action = `<div class="reader-borrow-note" role="status"><span aria-hidden="true">📚</span><span>You can borrow it when it returns.</span></div>`;
   } else {
-    action = `<button class="book-action" type="button" data-borrow="${escapeHtml(book.id)}">📖 Borrow this book</button>`;
+    action = `<button class="book-action" type="button" data-borrow="${escapeHtml(book.id)}">📖 <span>Borrow this book</span></button>`;
   }
   const historyButton = currentRole === "admin"
-    ? `<button class="history-button" type="button" data-history="${escapeHtml(book.id)}" data-admin-only aria-label="View borrowing history for ${escapeHtml(book.title)}">🕘 Borrowing history <span>${history.length}</span></button>`
+    ? `<button class="history-button" type="button" data-history="${escapeHtml(book.id)}" data-admin-only aria-label="View borrowing history for ${escapeHtml(book.title)}">🕘 <span>Borrowing history</span> <span>${history.length}</span></button>`
     : "";
   return `<article class="book-card${isLate ? " is-overdue" : ""}">
     <div class="cover-wrap" style="--cover:${safeColor(book.color)}">${cover}<span class="status-pill ${borrowed ? "is-borrowed" : ""}${isLate ? " is-overdue" : ""}"><span class="status-dot"></span>${isLate ? dueLabel(overdueDays) : borrowed ? "Out exploring" : "Ready to read"}</span></div>
@@ -1211,6 +1777,8 @@ document.getElementById("authAccessibilitySettingsButton").addEventListener("cli
 document.querySelectorAll('input[name="textSize"]').forEach((input) => input.addEventListener("change", saveAccessibilityPreferences));
 document.getElementById("highContrastToggle").addEventListener("change", saveAccessibilityPreferences);
 document.querySelectorAll('input[name="themeMode"]').forEach((input) => input.addEventListener("change", saveAccessibilityPreferences));
+document.querySelectorAll('input[name="colorTheme"]').forEach((input) => input.addEventListener("change", saveAccessibilityPreferences));
+document.getElementById("languageChoice").addEventListener("change", saveAccessibilityPreferences);
 document.getElementById("accessibilitySettingsModal").addEventListener("close", () => {
   const returnButton = currentRole
     ? document.getElementById("accessibilitySettingsButton")
@@ -1225,6 +1793,18 @@ document.getElementById("readerTourNext").addEventListener("click", () => update
 document.getElementById("readerTourFinish").addEventListener("click", () => closeModal(document.getElementById("readerTourModal")));
 document.getElementById("readerTourModal").addEventListener("close", () => {
   if (currentRole === "reader") document.getElementById("readerTourButton").focus();
+});
+
+document.getElementById("settingsTourButton").addEventListener("click", openSettingsTour);
+document.querySelectorAll("[data-settings-tour-text-size]").forEach((button) => {
+  button.addEventListener("click", () => updateSettingsTourTextPreview(button.dataset.settingsTourTextSize));
+});
+document.getElementById("settingsTourSkip").addEventListener("click", () => closeModal(document.getElementById("readingSettingsTourModal")));
+document.getElementById("settingsTourBack").addEventListener("click", () => updateSettingsTourStep(settingsTourStep - 1));
+document.getElementById("settingsTourNext").addEventListener("click", () => updateSettingsTourStep(settingsTourStep + 1));
+document.getElementById("settingsTourFinish").addEventListener("click", () => closeModal(document.getElementById("readingSettingsTourModal")));
+document.getElementById("readingSettingsTourModal").addEventListener("close", () => {
+  document.getElementById("settingsTourButton").focus();
 });
 
 document.querySelectorAll("[data-auth-role]").forEach((button) => {
@@ -1504,6 +2084,10 @@ document.querySelectorAll(".modal").forEach((dialog) => {
 });
 document.getElementById("bookModal").addEventListener("close", clearCoverPreview);
 
-document.getElementById("todayLabel").textContent = new Intl.DateTimeFormat(undefined, { weekday: "short", month: "long", day: "numeric" }).format(new Date());
+function updateTodayLabel() {
+  document.getElementById("todayLabel").textContent = new Intl.DateTimeFormat(currentLocale(), { weekday: "short", month: "long", day: "numeric" }).format(new Date());
+}
+
+updateTodayLabel();
 applyAccessibilityPreferences();
 initializeApp();
