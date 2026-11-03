@@ -64,7 +64,10 @@ function setSecurityHeaders(res) {
 }
 
 function databasePool() {
-  const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+  const connectionString =
+    process.env.STORAGE_DATABASE_URL ||
+    process.env.POSTGRES_URL ||
+    process.env.DATABASE_URL;
   if (!connectionString) {
     throw new HttpError(
       503,
