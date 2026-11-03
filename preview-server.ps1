@@ -280,6 +280,28 @@ function Convert-ToBook($Source, [bool]$KeepId = $false) {
     return $book
 }
 
+function Convert-BookForRole($Book, [string]$Role) {
+    if ($Role -eq "admin") { return $Book }
+    $readerBook = [ordered]@{}
+    if ($Book -is [System.Collections.IDictionary]) {
+        foreach ($key in $Book.Keys) { $readerBook[$key] = $Book[$key] }
+    } else {
+        foreach ($property in $Book.PSObject.Properties) { $readerBook[$property.Name] = $property.Value }
+    }
+    $readerBook.Remove("borrowedBy")
+    $readerBook.Remove("borrowedAt")
+    $readerBook.Remove("history")
+    return $readerBook
+}
+
+function Get-BooksForRole($Books, [string]$Role) {
+    $visibleBooks = @()
+    foreach ($book in @($Books)) {
+        $visibleBooks += ,(Convert-BookForRole $book $Role)
+    }
+    return $visibleBooks
+}
+
 function Get-LoginKey($Request, [string]$Role) {
     return "$($Request.RemoteEndPoint.Address):$Role"
 }
@@ -300,7 +322,8 @@ function Handle-Api($Context) {
             Send-Json $Context 200 @{ setupRequired = $false; authenticated = $false }
         } else {
             $recoveryRecord = Get-Value $script:Data "recovery" $null
-            Send-Json $Context 200 @{ setupRequired = $false; authenticated = $true; role = $session.role; books = @($script:Data.books); recoveryConfigured = ($null -ne $recoveryRecord) }
+            $sessionBooks = @(Get-BooksForRole $script:Data.books $session.role)
+            Send-Json $Context 200 @{ setupRequired = $false; authenticated = $true; role = $session.role; books = $sessionBooks; recoveryConfigured = ($null -ne $recoveryRecord) }
         }
         return
     }
@@ -370,7 +393,8 @@ function Handle-Api($Context) {
         $script:LoginAttempts.Remove($key)
         $recoveryRecord = Get-Value $script:Data "recovery" $null
         $recoveryConfigured = $null -ne $recoveryRecord
-        $responseBody = @{ authenticated = $true; role = $role; books = @($script:Data.books); recoveryConfigured = $recoveryConfigured }
+        $responseBooks = @(Get-BooksForRole $script:Data.books $role)
+        $responseBody = @{ authenticated = $true; role = $role; books = $responseBooks; recoveryConfigured = $recoveryConfigured }
         if ($role -eq "admin" -and -not $recoveryConfigured) {
             $recoveryCode = New-RecoveryCode
             Set-DataValue $script:Data "recovery" (New-PasswordRecord $recoveryCode.value)
@@ -531,7 +555,8 @@ function Handle-Api($Context) {
     if ($method -eq "GET" -and $path -eq "/api/books") {
         $session = Require-Session $Context
         if ($null -eq $session) { return }
-        Send-Json $Context 200 @{ books = @($script:Data.books) }
+        $sessionBooks = @(Get-BooksForRole $script:Data.books $session.role)
+        Send-Json $Context 200 @{ books = $sessionBooks }
         return
     }
 
@@ -603,7 +628,7 @@ function Handle-Api($Context) {
 
     if ($method -eq "POST" -and $path -match '^/api/books/([A-Za-z0-9_-]{1,80})/(borrow|return)$') {
         $action = $Matches[2]
-        $requiredRole = "reader"
+        $requiredRole = if ($action -eq "return") { "admin" } else { "reader" }
         $session = Require-Session $Context $requiredRole
         if ($null -eq $session) { return }
         $id = $Matches[1]
@@ -639,7 +664,8 @@ function Handle-Api($Context) {
             $book.borrowedAt = ""
         }
         Save-Data
-        Send-Json $Context 200 @{ book = $book }
+        $responseBook = Convert-BookForRole $book $session.role
+        Send-Json $Context 200 @{ book = $responseBook }
         return
     }
 

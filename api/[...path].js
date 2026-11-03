@@ -424,6 +424,18 @@ function normalizeStoredHistory(book) {
   if (typeof book.borrowedAt !== "string") book.borrowedAt = "";
 }
 
+function booksForRole(books, role) {
+  const shelf = Array.isArray(books) ? books : [];
+  if (role === "admin") return shelf;
+  return shelf.map((book) => {
+    const readerBook = { ...book };
+    delete readerBook.borrowedBy;
+    delete readerBook.borrowedAt;
+    delete readerBook.history;
+    return readerBook;
+  });
+}
+
 function bookIdFromPath(path) {
   const match = path.match(/^\/books\/([A-Za-z0-9_-]{1,80})$/);
   return match?.[1] || "";
@@ -439,7 +451,7 @@ async function handleApi(req, db, path, method) {
       setupRequired: false,
       authenticated: true,
       role: session.role,
-      books: Array.isArray(data.books) ? data.books : [],
+      books: booksForRole(data.books, session.role),
       recoveryConfigured: Boolean(data.recovery)
     });
   }
@@ -448,7 +460,7 @@ async function handleApi(req, db, path, method) {
     const session = await requireSession(db, req);
     if (session.error) return session.error;
     const data = await readLibrary(db);
-    return ok({ books: Array.isArray(data?.books) ? data.books : [] });
+    return ok({ books: booksForRole(data?.books, session.session.role) });
   }
 
   if (method === "POST" && path === "/setup") {
@@ -520,7 +532,7 @@ async function handleApi(req, db, path, method) {
       const response = {
         authenticated: true,
         role,
-        books: Array.isArray(state.data.books) ? state.data.books : [],
+        books: booksForRole(state.data.books, role),
         recoveryConfigured: Boolean(state.data.recovery)
       };
       if (recoveryCode) response.recoveryCode = recoveryCode.display;
@@ -677,7 +689,8 @@ async function handleApi(req, db, path, method) {
     const action = loanMatch[2];
     const body = action === "borrow" ? readBody(req) : {};
     return withStateTransaction(db, async (state) => {
-      const auth = await requireSession(state.client, req, "reader");
+      const requiredRole = action === "borrow" ? "reader" : "admin";
+      const auth = await requireSession(state.client, req, requiredRole);
       if (auth.error) return auth.error;
       const book = (state.data.books || []).find((entry) => entry.id === loanMatch[1]);
       if (!book) return problem(404, "That book is no longer on the shelf.");
@@ -708,7 +721,7 @@ async function handleApi(req, db, path, method) {
         book.borrowedAt = "";
       }
       state.dirty = true;
-      return ok({ book });
+      return ok({ book: booksForRole([book], auth.session.role)[0] });
     });
   }
 

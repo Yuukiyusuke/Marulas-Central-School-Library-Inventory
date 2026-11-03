@@ -23,7 +23,7 @@
           <button class="nav-link active" data-filter="all" type="button"><span class="nav-icon" aria-hidden="true">🌈</span><span class="nav-text-full">All stories</span><span class="nav-text-short">All</span><span class="nav-count" id="allCount">0</span></button>
           <button class="nav-link" data-filter="available" type="button"><span class="nav-icon" aria-hidden="true">⭐</span><span class="nav-text-full">Ready to read</span><span class="nav-text-short">Ready</span><span class="nav-count" id="availableCount">0</span></button>
           <button class="nav-link" data-filter="borrowed" type="button"><span class="nav-icon" aria-hidden="true">🧭</span><span class="nav-text-full">Borrowed out</span><span class="nav-text-short">Borrowed</span><span class="nav-count" id="borrowedCount">0</span></button>
-          <button class="nav-link overdue-nav-link" data-filter="overdue" type="button"><span class="nav-icon" aria-hidden="true">⏰</span><span class="nav-text-full">Overdue</span><span class="nav-text-short">Overdue</span><span class="nav-count" id="overdueNavCount">0</span></button>
+          <button class="nav-link overdue-nav-link" data-filter="overdue" type="button" data-admin-only><span class="nav-icon" aria-hidden="true">⏰</span><span class="nav-text-full">Overdue</span><span class="nav-text-short">Overdue</span><span class="nav-count" id="overdueNavCount">0</span></button>
         </nav>
 
         <div class="nav-label category-label">STORY WORLDS</div>
@@ -59,8 +59,8 @@
             <h1>Welcome, book explorer<span class="title-period">!</span></h1>
             <p class="welcome-copy">Pick a story, meet a character, and let your imagination go!</p>
             <button class="reader-tour-trigger" id="readerTourButton" type="button" hidden><span aria-hidden="true">&#10024;</span> Show me how books work</button>
-            <button class="account-recovery-trigger" id="manageRecoveryButton" type="button" hidden><span aria-hidden="true">&#128272;</span> Set up recovery key</button>
-            <button class="account-password-trigger" id="manageAccountPasswordsButton" type="button" hidden><span aria-hidden="true">&#128273;</span> Account passwords</button>
+            <button class="account-recovery-trigger" id="manageRecoveryButton" type="button" data-admin-only hidden><span aria-hidden="true">&#128272;</span> Set up recovery key</button>
+            <button class="account-password-trigger" id="manageAccountPasswordsButton" type="button" data-admin-only hidden><span aria-hidden="true">&#128273;</span> Account passwords</button>
           </div>
           <div class="welcome-illustration" aria-hidden="true">
             <span class="illustration-sun">✦</span>
@@ -71,7 +71,7 @@
           </div>
         </section>
 
-        <section class="stats-grid" aria-label="Library summary">
+        <section class="stats-grid" data-admin-only aria-label="Library summary">
           <article class="stat-card stat-total">
             <div class="stat-copy"><span class="stat-label">Books on our shelf</span><strong id="totalStat">0</strong><span class="stat-foot">A whole world of stories</span></div>
             <span class="stat-art" aria-hidden="true">📚</span>
@@ -86,7 +86,7 @@
           </article>
         </section>
 
-        <section class="insights-section" aria-labelledby="insightsHeading">
+        <section class="insights-section" id="libraryInsightsSection" data-admin-only aria-labelledby="insightsHeading">
           <div class="insights-heading">
             <div><p class="due-eyebrow">BOOKS & RETURNS</p><h2 id="insightsHeading">Library snapshots</h2><p>A little look at favorite books and return rhythms.</p></div>
             <button class="history-open-button" id="openLibraryHistory" type="button" aria-haspopup="dialog">📚 Find borrowing history</button>
@@ -118,7 +118,7 @@
           </div>
         </section>
 
-        <section class="due-section" aria-labelledby="dueSectionHeading">
+        <section class="due-section" id="dueSection" data-admin-only aria-labelledby="dueSectionHeading">
           <div class="due-section-heading">
             <div>
               <p class="due-eyebrow">RETURN CHECK</p>
@@ -163,7 +163,7 @@
               <div class="section-title-line"><h2 id="booksHeading">Choose a story</h2><span class="little-star" aria-hidden="true">✧</span></div>
               <p id="booksSubheading">Find your next favorite adventure!</p>
             </div>
-            <button class="add-book-button" id="openAddBook" type="button"><span aria-hidden="true">＋</span> Add a story</button>
+            <button class="add-book-button" id="openAddBook" type="button" data-admin-only><span aria-hidden="true">＋</span> Add a story</button>
           </div>
 
           <div class="toolbar">
@@ -187,7 +187,7 @@
       </main>
     </div>
 
-    <dialog class="modal" id="bookModal" aria-labelledby="bookModalTitle">
+    <dialog class="modal" id="bookModal" data-admin-only aria-labelledby="bookModalTitle">
       <form id="bookForm" class="modal-card">
         <button class="modal-close" type="button" data-close="bookModal" aria-label="Close">×</button>
         <div class="modal-kicker" id="bookModalKicker">A NEW ADVENTURE IS JOINING</div>
@@ -227,7 +227,7 @@
       </form>
     </dialog>
 
-    <dialog class="modal" id="removeModal" aria-labelledby="removeModalTitle">
+    <dialog class="modal" id="removeModal" data-admin-only aria-labelledby="removeModalTitle">
       <section class="modal-card">
         <button class="modal-close" type="button" data-close="removeModal" aria-label="Close">×</button>
         <div class="modal-kicker">LIBRARY ADMIN</div>
@@ -241,7 +241,7 @@
       </section>
     </dialog>
 
-    <dialog class="modal history-modal" id="historyModal" aria-labelledby="historyModalTitle">
+    <dialog class="modal history-modal" id="historyModal" data-admin-only aria-labelledby="historyModalTitle">
       <section class="modal-card">
         <button class="modal-close" type="button" data-close="historyModal" aria-label="Close">×</button>
         <div class="modal-kicker">STORY SHELF MEMORIES</div>
@@ -288,12 +288,43 @@
         <div class="modal-kicker">MAKE READING COMFY</div>
         <h2 id="accessibilitySettingsTitle">Reading settings</h2>
         <p class="modal-description">Choose what helps you read. We&#8217;ll remember on this device.</p>
+        <fieldset class="theme-settings-group">
+          <legend>App appearance</legend>
+          <div class="theme-choice-list">
+            <label class="theme-choice" for="lightThemeChoice">
+              <span class="theme-choice-icon theme-choice-icon-light" aria-hidden="true">☀</span>
+              <span class="theme-choice-copy"><strong>Light</strong><small>Bright and sunny</small></span>
+              <input id="lightThemeChoice" type="radio" name="themeMode" value="light" />
+            </label>
+            <label class="theme-choice" for="darkThemeChoice">
+              <span class="theme-choice-icon theme-choice-icon-dark" aria-hidden="true">☾</span>
+              <span class="theme-choice-copy"><strong>Dark</strong><small>Soft on your eyes</small></span>
+              <input id="darkThemeChoice" type="radio" name="themeMode" value="dark" />
+            </label>
+          </div>
+        </fieldset>
         <div class="accessibility-settings-list">
-          <label class="accessibility-option" for="largerTextToggle">
-            <span class="accessibility-option-icon" aria-hidden="true">Aa</span>
-            <span class="accessibility-option-copy"><strong>Larger text</strong><small id="largerTextDescription">Make words and buttons easier to see.</small></span>
-            <input id="largerTextToggle" type="checkbox" aria-describedby="largerTextDescription" />
-          </label>
+          <fieldset class="text-size-settings-group" aria-describedby="textSizeDescription">
+            <legend>Reading text size</legend>
+            <div class="text-size-choice-list">
+              <label class="text-size-choice" for="normalTextChoice">
+                <span class="text-size-preview" aria-hidden="true">Aa</span>
+                <span class="text-size-choice-label">Normal</span>
+                <input id="normalTextChoice" type="radio" name="textSize" value="normal" />
+              </label>
+              <label class="text-size-choice" for="largeTextChoice">
+                <span class="text-size-preview text-size-preview-large" aria-hidden="true">Aa</span>
+                <span class="text-size-choice-label">Large</span>
+                <input id="largeTextChoice" type="radio" name="textSize" value="large" />
+              </label>
+              <label class="text-size-choice" for="extraLargeTextChoice">
+                <span class="text-size-preview text-size-preview-extra-large" aria-hidden="true">Aa</span>
+                <span class="text-size-choice-label">Extra-large</span>
+                <input id="extraLargeTextChoice" type="radio" name="textSize" value="extra-large" />
+              </label>
+            </div>
+            <p class="text-size-description" id="textSizeDescription">Choose a comfortable size. The app layout adjusts to fit your screen.</p>
+          </fieldset>
           <label class="accessibility-option" for="highContrastToggle">
             <span class="accessibility-option-icon accessibility-contrast-icon" aria-hidden="true"><span></span></span>
             <span class="accessibility-option-copy"><strong>Stronger color contrast</strong><small id="highContrastDescription">Make words, buttons, and outlines stand out.</small></span>
@@ -424,7 +455,7 @@
       </form>
     </dialog>
 
-    <dialog class="modal recovery-modal" id="recoveryKeyModal" aria-labelledby="recoveryKeyTitle">
+    <dialog class="modal recovery-modal" id="recoveryKeyModal" data-admin-only aria-labelledby="recoveryKeyTitle">
       <section class="modal-card">
         <button class="modal-close" type="button" data-close="recoveryKeyModal" aria-label="Close recovery key">&times;</button>
         <div class="modal-kicker">ADMIN ACCOUNT SAFETY</div>
@@ -450,7 +481,7 @@
       </section>
     </dialog>
 
-    <dialog class="modal account-password-modal" id="accountPasswordsModal" aria-labelledby="accountPasswordsTitle">
+    <dialog class="modal account-password-modal" id="accountPasswordsModal" data-admin-only aria-labelledby="accountPasswordsTitle">
       <section class="modal-card account-password-card">
         <button class="modal-close" type="button" data-close="accountPasswordsModal" aria-label="Close account password settings">&times;</button>
         <div class="modal-kicker">ADMIN ACCOUNT SETTINGS</div>

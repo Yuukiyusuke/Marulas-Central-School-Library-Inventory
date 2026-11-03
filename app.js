@@ -7,9 +7,16 @@ const adminRoleIcon = '<svg class="admin-role-mark" viewBox="0 0 24 24" aria-hid
 function loadAccessibilityPreferences() {
   try {
     const saved = JSON.parse(localStorage.getItem(ACCESSIBILITY_PREFERENCES_KEY) || "{}");
-    return { largerText: saved.largerText === true, highContrast: saved.highContrast === true };
+    const savedTextSize = ["normal", "large", "extra-large"].includes(saved.textSize)
+      ? saved.textSize
+      : saved.largerText === true ? "large" : "normal";
+    return {
+      textSize: savedTextSize,
+      highContrast: saved.highContrast === true,
+      theme: saved.theme === "dark" ? "dark" : "light"
+    };
   } catch {
-    return { largerText: false, highContrast: false };
+    return { textSize: "normal", highContrast: false, theme: "light" };
   }
 }
 
@@ -84,15 +91,22 @@ function setPasswordToggleState(button, isVisible) {
 }
 
 function applyAccessibilityPreferences() {
-  document.documentElement.classList.toggle("large-text-mode", accessibilityPreferences.largerText);
+  document.documentElement.classList.toggle("dark-mode", accessibilityPreferences.theme === "dark");
+  document.documentElement.classList.toggle("large-text-mode", accessibilityPreferences.textSize !== "normal");
+  document.documentElement.classList.toggle("extra-large-text-mode", accessibilityPreferences.textSize === "extra-large");
   document.documentElement.classList.toggle("high-contrast-mode", accessibilityPreferences.highContrast);
-  document.getElementById("largerTextToggle").checked = accessibilityPreferences.largerText;
+  document.querySelector(`input[name="themeMode"][value="${accessibilityPreferences.theme}"]`).checked = true;
+  document.querySelector(`input[name="textSize"][value="${accessibilityPreferences.textSize}"]`).checked = true;
   document.getElementById("highContrastToggle").checked = accessibilityPreferences.highContrast;
+  document.querySelector('meta[name="theme-color"]').content = accessibilityPreferences.theme === "dark" ? "#171827" : "#fff9ec";
 }
 
 function saveAccessibilityPreferences() {
+  const textSize = document.querySelector('input[name="textSize"]:checked').value;
   accessibilityPreferences = {
-    largerText: document.getElementById("largerTextToggle").checked,
+    theme: document.querySelector('input[name="themeMode"]:checked').value,
+    textSize,
+    largerText: textSize !== "normal",
     highContrast: document.getElementById("highContrastToggle").checked
   };
   applyAccessibilityPreferences();
@@ -109,7 +123,7 @@ function openAccessibilitySettings() {
   applyAccessibilityPreferences();
   document.getElementById("accessibilitySettingsStatus").textContent = "Changes apply right away and are saved on this device.";
   openModal(document.getElementById("accessibilitySettingsModal"));
-  document.getElementById("largerTextToggle").focus();
+  document.querySelector('input[name="themeMode"]:checked').focus({ preventScroll: true });
 }
 
 function updatePasswordStrength(role) {
@@ -360,8 +374,23 @@ function openReaderTour() {
 }
 
 function lockApp() {
+  document.querySelectorAll("dialog[open]").forEach(closeModal);
+  selectedBookId = null;
+  selectedEditBookId = null;
+  selectedRemoveBookId = null;
+  historyScopeBookId = null;
+  currentFilter = "all";
+  currentDueView = "books";
+  searchInput.value = "";
   currentRole = null;
   books = [];
+  clearAdminViewData();
+  document.getElementById("bookForm").reset();
+  document.getElementById("borrowForm").reset();
+  document.getElementById("adminPasswordChangeForm").reset();
+  document.getElementById("readerPasswordChangeForm").reset();
+  resetCoverUpload();
+  renderRoleControls();
   document.body.classList.add("auth-locked");
   setAuthMode("login");
 }
@@ -429,6 +458,7 @@ function getLoanHistoryStatus(record, isCurrent) {
 }
 
 function renderHistoryList() {
+  if (currentRole !== "admin") return;
   const studentFilter = document.getElementById("historyStudentFilter").value.trim().toLocaleLowerCase();
   const bookFilter = document.getElementById("historyBookFilter").value.trim().toLocaleLowerCase();
   const fromDate = document.getElementById("historyFromDate").value;
@@ -497,6 +527,7 @@ function renderHistoryList() {
 }
 
 function openHistoryModal(bookId = null) {
+  if (currentRole !== "admin") return;
   const book = bookId ? books.find((item) => item.id === bookId) : null;
   if (bookId && !book) return;
   historyScopeBookId = book ? book.id : null;
@@ -519,7 +550,7 @@ function getVisibleBooks() {
     const matchesFilter = currentFilter === "all"
       || currentFilter === "available" && book.available
       || currentFilter === "borrowed" && !book.available
-      || currentFilter === "overdue" && isOverdue(book)
+      || currentRole === "admin" && currentFilter === "overdue" && isOverdue(book)
       || !statusFilter && book.category === currentFilter;
     const matchesSearch = !search || `${book.title} ${book.author || ""} ${book.category}`.toLowerCase().includes(search);
     return matchesFilter && matchesSearch;
@@ -529,7 +560,7 @@ function getVisibleBooks() {
 function render() {
   const available = books.filter((book) => book.available).length;
   const borrowed = books.length - available;
-  const overdue = books.filter(isOverdue).length;
+  const overdue = currentRole === "admin" ? books.filter(isOverdue).length : 0;
   document.getElementById("allCount").textContent = books.length;
   document.getElementById("availableCount").textContent = available;
   document.getElementById("borrowedCount").textContent = borrowed;
@@ -538,8 +569,12 @@ function render() {
   document.getElementById("availableStat").textContent = available;
   document.getElementById("borrowedStat").textContent = borrowed;
   renderRoleControls();
-  renderInsights();
-  renderDueDates();
+  if (currentRole === "admin") {
+    renderInsights();
+    renderDueDates();
+  } else {
+    clearAdminViewData();
+  }
 
   const visible = getVisibleBooks();
   document.getElementById("visibleCount").textContent = visible.length;
@@ -550,7 +585,31 @@ function render() {
   renderFilterName();
 }
 
+function clearAdminViewData() {
+  ["mostBorrowedBooks", "overdueList", "dueSoonList", "studentReminderGroups", "historyList"].forEach((id) => {
+    document.getElementById(id).replaceChildren();
+  });
+  ["totalLoanCount", "overdueCount", "dueSoonCount", "studentReminderCount", "historyReturnedCount", "historyBorrowedCount", "historyOverdueCount", "onTimeReturnCount", "lateReturnCount"].forEach((id) => {
+    document.getElementById(id).textContent = "0";
+  });
+  document.getElementById("totalLoanCount").textContent = "0 loans";
+  ["totalStat", "availableStat", "borrowedStat", "overdueNavCount"].forEach((id) => {
+    document.getElementById(id).textContent = "0";
+  });
+  ["historyBookTitle", "historyResultCount", "removeBookName"].forEach((id) => {
+    document.getElementById(id).textContent = "";
+  });
+  ["historyStudentFilter", "historyBookFilter", "historyFromDate", "historyToDate"].forEach((id) => {
+    document.getElementById(id).value = "";
+  });
+  document.getElementById("historyStatusFilter").value = "";
+  document.getElementById("returnPatternNote").textContent = "Completed returns with due dates will show here.";
+  document.getElementById("returnPatternBar").setAttribute("aria-label", "No return data yet");
+  document.querySelectorAll(".return-pattern-bar > span").forEach((segment) => { segment.style.width = "0%"; });
+}
+
 function renderInsights() {
+  if (currentRole !== "admin") return;
   const completedReturns = books.flatMap((book) =>
     (Array.isArray(book.history) ? book.history : []).map((record) => ({ ...record }))
   );
@@ -660,6 +719,7 @@ function renderDueList(listId, items, emptyText) {
 }
 
 function renderDueDates() {
+  if (currentRole !== "admin") return;
   const datedBorrowedBooks = books
     .filter((book) => !book.available && book.dueDate)
     .map((book) => ({ book, days: daysFromToday(book.dueDate) }))
@@ -715,6 +775,7 @@ function renderStudentReminders(overdue) {
 }
 
 function setDueView(view) {
+  if (currentRole !== "admin") return;
   currentDueView = view === "students" ? "students" : "books";
   const isStudentView = currentDueView === "students";
   document.getElementById("dueBooksTab").classList.toggle("active", !isStudentView);
@@ -728,6 +789,9 @@ function setDueView(view) {
 
 function renderRoleControls() {
   const isAdmin = currentRole === "admin";
+  if (currentRole) document.body.dataset.role = currentRole;
+  else delete document.body.dataset.role;
+  document.querySelectorAll("[data-admin-only]").forEach((element) => { element.hidden = !isAdmin; });
   document.getElementById("currentRoleName").textContent = isAdmin ? "Admin" : "Reader";
   document.getElementById("roleIcon").innerHTML = isAdmin ? adminRoleIcon : "📖";
   document.querySelector(".role-switch-destination").textContent = "Sign out";
@@ -745,22 +809,29 @@ function bookCard(book) {
   const history = Array.isArray(book.history) ? book.history : [];
   const due = formatDueDate(book.dueDate);
   const overdueDays = borrowed && book.dueDate ? daysFromToday(book.dueDate) : null;
-  const isLate = overdueDays !== null && overdueDays < 0;
+  const isLate = currentRole === "admin" && overdueDays !== null && overdueDays < 0;
   const cover = book.coverImage
     ? `<img class="cover-image" src="${book.coverImage}" alt="Cover of ${escapeHtml(book.title)}" />`
     : `<span class="cover-ribbon">A GOOD STORY</span><span class="cover-emoji" aria-hidden="true">${book.emoji || "📖"}</span>`;
   const borrowInfo = borrowed
-    ? `<div class="borrow-details">Reading with <strong>${escapeHtml(book.borrowedBy || "A friend")}</strong>${isLate ? ` · ${dueLabel(overdueDays)}` : due ? ` · Back by ${escapeHtml(due)}` : ""}</div>`
+    ? currentRole === "admin"
+      ? `<div class="borrow-details">Reading with <strong>${escapeHtml(book.borrowedBy || "A friend")}</strong>${isLate ? ` · ${dueLabel(overdueDays)}` : due ? ` · Back by ${escapeHtml(due)}` : ""}</div>`
+      : `<div class="borrow-details">${due ? `Back by ${escapeHtml(due)}` : "Currently borrowed"}</div>`
     : "";
   let action;
   if (currentRole === "admin") {
-    action = `<div class="admin-book-actions"><button class="book-action edit-action" type="button" data-edit="${escapeHtml(book.id)}" aria-label="Edit ${escapeHtml(book.title)}">✏️ Edit</button><button class="book-action remove-action" type="button" data-remove="${escapeHtml(book.id)}" aria-label="Remove ${escapeHtml(book.title)}">🗑 Remove</button></div>`;
+    const returnAction = borrowed
+      ? `<button class="book-action return-action" type="button" data-return="${escapeHtml(book.id)}" aria-label="Mark ${escapeHtml(book.title)} as returned">↩ Mark as returned</button>`
+      : "";
+    action = `<div class="admin-book-actions" data-admin-only><button class="book-action edit-action" type="button" data-edit="${escapeHtml(book.id)}" aria-label="Edit ${escapeHtml(book.title)}">✏️ Edit</button><button class="book-action remove-action" type="button" data-remove="${escapeHtml(book.id)}" aria-label="Remove ${escapeHtml(book.title)}">🗑 Remove</button>${returnAction}</div>`;
   } else if (borrowed) {
-    action = `<button class="book-action return-action" type="button" data-return="${escapeHtml(book.id)}">↩ Mark as returned</button>`;
+    action = `<div class="reader-borrow-note" role="status"><span aria-hidden="true">📚</span><span>You can borrow it when it returns.</span></div>`;
   } else {
     action = `<button class="book-action" type="button" data-borrow="${escapeHtml(book.id)}">📖 Borrow this book</button>`;
   }
-  const historyButton = `<button class="history-button" type="button" data-history="${escapeHtml(book.id)}" aria-label="View borrowing history for ${escapeHtml(book.title)}">🕘 Borrowing history <span>${history.length}</span></button>`;
+  const historyButton = currentRole === "admin"
+    ? `<button class="history-button" type="button" data-history="${escapeHtml(book.id)}" data-admin-only aria-label="View borrowing history for ${escapeHtml(book.title)}">🕘 Borrowing history <span>${history.length}</span></button>`
+    : "";
   return `<article class="book-card${isLate ? " is-overdue" : ""}">
     <div class="cover-wrap" style="--cover:${safeColor(book.color)}">${cover}<span class="status-pill ${borrowed ? "is-borrowed" : ""}${isLate ? " is-overdue" : ""}"><span class="status-dot"></span>${isLate ? dueLabel(overdueDays) : borrowed ? "Out exploring" : "Ready to read"}</span></div>
     <div class="book-info"><div class="book-category">${escapeHtml(book.category || "Other")}</div><h3 class="book-title">${escapeHtml(book.title)}</h3><p class="book-author">${escapeHtml(book.author || "Author not added")}</p>${borrowInfo}<div class="book-actions">${action}${historyButton}</div></div>
@@ -877,6 +948,7 @@ function resizeCover(file) {
 document.addEventListener("click", async (event) => {
   const openLibraryHistoryButton = event.target.closest("#openLibraryHistory");
   if (openLibraryHistoryButton) {
+    if (currentRole !== "admin") return;
     openHistoryModal();
     return;
   }
@@ -921,11 +993,13 @@ document.addEventListener("click", async (event) => {
   }
   const historyButton = event.target.closest("[data-history]");
   if (historyButton) {
+    if (currentRole !== "admin") return;
     openHistoryModal(historyButton.dataset.history);
     return;
   }
   const filterButton = event.target.closest("[data-filter]");
   if (filterButton) {
+    if (filterButton.dataset.filter === "overdue" && currentRole !== "admin") return;
     currentFilter = filterButton.dataset.filter;
     render();
     return;
@@ -944,7 +1018,7 @@ document.addEventListener("click", async (event) => {
   }
   const returnButton = event.target.closest("[data-return]");
   if (returnButton) {
-    if (currentRole !== "reader") return;
+    if (currentRole !== "admin") return;
     const book = books.find((item) => item.id === returnButton.dataset.return);
     if (!book) return;
     try {
@@ -988,6 +1062,7 @@ document.getElementById("recoveryKeyConfirm").addEventListener("click", async ()
   }
 });
 document.getElementById("copyRecoveryKey").addEventListener("click", async () => {
+  if (currentRole !== "admin") return;
   const input = document.getElementById("recoveryKeyValue");
   const status = document.getElementById("recoveryCopyStatus");
   input.select();
@@ -1133,8 +1208,9 @@ document.getElementById("readerPasswordChangeForm").addEventListener("submit", a
 
 document.getElementById("accessibilitySettingsButton").addEventListener("click", openAccessibilitySettings);
 document.getElementById("authAccessibilitySettingsButton").addEventListener("click", openAccessibilitySettings);
-document.getElementById("largerTextToggle").addEventListener("change", saveAccessibilityPreferences);
+document.querySelectorAll('input[name="textSize"]').forEach((input) => input.addEventListener("change", saveAccessibilityPreferences));
 document.getElementById("highContrastToggle").addEventListener("change", saveAccessibilityPreferences);
+document.querySelectorAll('input[name="themeMode"]').forEach((input) => input.addEventListener("change", saveAccessibilityPreferences));
 document.getElementById("accessibilitySettingsModal").addEventListener("close", () => {
   const returnButton = currentRole
     ? document.getElementById("accessibilitySettingsButton")
@@ -1379,6 +1455,16 @@ document.getElementById("borrowForm").addEventListener("submit", async (event) =
 });
 
 searchInput.addEventListener("input", render);
+document.querySelector(".brand").addEventListener("click", (event) => {
+  if (!currentRole || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  currentFilter = "all";
+  searchInput.value = "";
+  if (currentRole === "admin") setDueView("books");
+  render();
+  window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#home`);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
 document.getElementById("historyStudentFilter").addEventListener("input", renderHistoryList);
 document.getElementById("historyBookFilter").addEventListener("input", renderHistoryList);
 document.getElementById("historyFromDate").addEventListener("input", renderHistoryList);
