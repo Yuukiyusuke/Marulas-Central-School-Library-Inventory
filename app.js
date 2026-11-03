@@ -210,6 +210,7 @@ const FILIPINO_TRANSLATIONS = {
   "Extra-large": "Napakalaki",
   "Details": "Mga detalye",
   "Make words easier to see": "Gawing mas madaling makita ang mga salita",
+  "Borrow": "Hiramin",
   "Use stronger colors on text and buttons.": "Gumamit ng mas matingkad na kulay sa mga salita at button.",
   "Changes show right away.": "Makikita agad ang mga pagbabago.",
   "Changes show right away and save here.": "Makikita agad at mase-save dito ang mga pagbabago.",
