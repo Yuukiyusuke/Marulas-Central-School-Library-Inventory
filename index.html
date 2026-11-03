@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#fff9ec" />
+    <title>Little Library — Story Shelf</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="auth-locked">
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Main navigation">
+        <a class="brand" href="#home" aria-label="Little Library home">
+          <span class="brand-mark" aria-hidden="true">📚</span>
+          <span class="brand-name">little<span>library</span></span>
+        </a>
+
+        <div class="nav-label">MY BOOKS</div>
+        <nav class="primary-nav">
+          <button class="nav-link active" data-filter="all" type="button"><span class="nav-icon" aria-hidden="true">🌈</span><span class="nav-text-full">All stories</span><span class="nav-text-short">All</span><span class="nav-count" id="allCount">0</span></button>
+          <button class="nav-link" data-filter="available" type="button"><span class="nav-icon" aria-hidden="true">⭐</span><span class="nav-text-full">Ready to read</span><span class="nav-text-short">Ready</span><span class="nav-count" id="availableCount">0</span></button>
+          <button class="nav-link" data-filter="borrowed" type="button"><span class="nav-icon" aria-hidden="true">🧭</span><span class="nav-text-full">Borrowed out</span><span class="nav-text-short">Borrowed</span><span class="nav-count" id="borrowedCount">0</span></button>
+          <button class="nav-link overdue-nav-link" data-filter="overdue" type="button"><span class="nav-icon" aria-hidden="true">⏰</span><span class="nav-text-full">Overdue</span><span class="nav-text-short">Overdue</span><span class="nav-count" id="overdueNavCount">0</span></button>
+        </nav>
+
+        <div class="nav-label category-label">STORY WORLDS</div>
+        <nav id="categoryNav" class="category-nav" aria-label="Filter by category"></nav>
+
+        <div class="sidebar-note">
+          <span class="note-sparkle" aria-hidden="true">✦</span>
+          <p>Reading takes you everywhere!</p>
+          <span class="note-doodle" aria-hidden="true">〰</span>
+        </div>
+        <div class="sidebar-footer"><span class="online-dot"></span> Your shelf is saved here</div>
+      </aside>
+
+      <main class="main-content" id="home">
+        <header class="topbar">
+          <div class="breadcrumb"><span>My library</span><span class="crumb-dot">•</span><strong id="breadcrumbCurrent">All books</strong></div>
+          <div class="topbar-right">
+            <span class="today-label" id="todayLabel"></span>
+            <button class="accessibility-trigger" id="accessibilitySettingsButton" type="button" aria-haspopup="dialog" aria-controls="accessibilitySettingsModal" aria-label="Open reading accessibility settings">
+              <span class="accessibility-trigger-icon" aria-hidden="true">Aa</span><span class="accessibility-trigger-label">Reading settings</span>
+            </button>
+            <button class="role-switch-button" id="logoutButton" type="button" aria-label="Sign out">
+              <span class="role-icon" id="roleIcon" aria-hidden="true">📖</span>
+              <span class="role-switch-copy"><small>Signed in as</small><strong id="currentRoleName">Reader</strong></span>
+              <span class="role-switch-destination">Sign out</span>
+            </button>
+          </div>
+        </header>
+
+        <section class="welcome-row">
+          <div>
+            <p class="eyebrow"><span>✦</span> OPEN A BOOK, OPEN A WORLD <span>✦</span></p>
+            <h1>Welcome, book explorer<span class="title-period">!</span></h1>
+            <p class="welcome-copy">Pick a story, meet a character, and let your imagination go!</p>
+            <button class="reader-tour-trigger" id="readerTourButton" type="button" hidden><span aria-hidden="true">&#10024;</span> Show me how books work</button>
+            <button class="account-recovery-trigger" id="manageRecoveryButton" type="button" hidden><span aria-hidden="true">&#128272;</span> Set up recovery key</button>
+            <button class="account-password-trigger" id="manageAccountPasswordsButton" type="button" hidden><span aria-hidden="true">&#128273;</span> Account passwords</button>
+          </div>
+          <div class="welcome-illustration" aria-hidden="true">
+            <span class="illustration-sun">✦</span>
+            <span class="illustration-book book-a">📘</span>
+            <span class="illustration-book book-b">📙</span>
+            <span class="illustration-book book-c">📗</span>
+            <span class="illustration-cloud">☁</span>
+          </div>
+        </section>
+
+        <section class="stats-grid" aria-label="Library summary">
+          <article class="stat-card stat-total">
+            <div class="stat-copy"><span class="stat-label">Books on our shelf</span><strong id="totalStat">0</strong><span class="stat-foot">A whole world of stories</span></div>
+            <span class="stat-art" aria-hidden="true">📚</span>
+          </article>
+          <article class="stat-card stat-available">
+            <div class="stat-copy"><span class="stat-label">Ready for a reader</span><strong id="availableStat">0</strong><span class="stat-foot">Which one will you pick?</span></div>
+            <span class="stat-art" aria-hidden="true">🌟</span>
+          </article>
+          <article class="stat-card stat-borrowed">
+            <div class="stat-copy"><span class="stat-label">Books borrowed</span><strong id="borrowedStat">0</strong><span class="stat-foot">Currently with students</span></div>
+            <span class="stat-art" aria-hidden="true">🧭</span>
+          </article>
+        </section>
+
+        <section class="insights-section" aria-labelledby="insightsHeading">
+          <div class="insights-heading">
+            <div><p class="due-eyebrow">BOOKS & RETURNS</p><h2 id="insightsHeading">Library snapshots</h2><p>A little look at favorite books and return rhythms.</p></div>
+            <button class="history-open-button" id="openLibraryHistory" type="button" aria-haspopup="dialog">📚 Find borrowing history</button>
+          </div>
+          <div class="insights-grid">
+            <article class="insight-card popular-insight" aria-labelledby="popularBooksHeading">
+              <div class="insight-card-heading">
+                <span class="insight-icon" aria-hidden="true">🏆</span>
+                <div><h3 id="popularBooksHeading">Most borrowed books</h3><p>Reader favorites on our shelf</p></div>
+                <span class="insight-total" id="totalLoanCount">0 loans</span>
+              </div>
+              <ol class="popular-books-list" id="mostBorrowedBooks" aria-live="polite"></ol>
+            </article>
+            <article class="insight-card returns-insight" aria-labelledby="returnPatternsHeading">
+              <div class="insight-card-heading">
+                <span class="insight-icon" aria-hidden="true">🌈</span>
+                <div><h3 id="returnPatternsHeading">Return patterns</h3><p>Did books come back on time?</p></div>
+              </div>
+              <div class="return-stat-grid">
+                <div class="return-stat return-on-time"><strong id="onTimeReturnCount">0</strong><span>On time</span></div>
+                <div class="return-stat return-late"><strong id="lateReturnCount">0</strong><span>Late</span></div>
+              </div>
+              <div class="return-pattern-bar" id="returnPatternBar" role="img" aria-label="No return data yet">
+                <span class="return-on-time-segment" id="onTimeReturnSegment"></span>
+                <span class="return-late-segment" id="lateReturnSegment"></span>
+              </div>
+              <p class="return-pattern-note" id="returnPatternNote">Completed returns with due dates will show here.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="due-section" aria-labelledby="dueSectionHeading">
+          <div class="due-section-heading">
+            <div>
+              <p class="due-eyebrow">RETURN CHECK</p>
+              <h2 id="dueSectionHeading">Books coming back</h2>
+              <p>See what’s overdue and what’s due this week.</p>
+            </div>
+            <span class="due-window" id="dueWindowLabel">Next 7 days</span>
+          </div>
+          <div class="due-view-tabs" role="group" aria-label="Choose a reminder view">
+            <button class="due-view-tab active" id="dueBooksTab" type="button" aria-pressed="true" aria-controls="dueBooksView" data-due-view="books">By due date</button>
+            <button class="due-view-tab" id="studentRemindersTab" type="button" aria-pressed="false" aria-controls="studentRemindersView" data-due-view="students">Overdue by student <span id="studentReminderCount">0</span></button>
+          </div>
+          <div class="due-view-panel" id="dueBooksView" aria-labelledby="dueBooksTab">
+            <div class="due-groups">
+            <section class="due-group due-overdue" aria-labelledby="overdueHeading">
+              <div class="due-group-heading">
+                <span class="due-group-icon" aria-hidden="true">⏰</span>
+                <div><h3 id="overdueHeading">Overdue</h3><p>Ready to come home</p></div>
+                <strong class="due-count" id="overdueCount">0</strong>
+              </div>
+              <ul class="due-list" id="overdueList" aria-live="polite"></ul>
+            </section>
+            <section class="due-group due-soon" aria-labelledby="dueSoonHeading">
+              <div class="due-group-heading">
+                <span class="due-group-icon" aria-hidden="true">🌟</span>
+                <div><h3 id="dueSoonHeading">Due this week</h3><p>Coming back soon</p></div>
+                <strong class="due-count" id="dueSoonCount">0</strong>
+              </div>
+              <ul class="due-list" id="dueSoonList" aria-live="polite"></ul>
+            </section>
+            </div>
+          </div>
+          <div class="due-view-panel student-reminders-view" id="studentRemindersView" aria-labelledby="studentRemindersTab" hidden>
+            <div class="student-reminder-intro"><span aria-hidden="true">💌</span><div><h3>Reminders by student</h3><p>Each reader’s overdue books are together in one place.</p></div></div>
+            <div class="student-reminder-grid" id="studentReminderGroups" aria-live="polite"></div>
+          </div>
+        </section>
+
+        <section class="books-section" aria-labelledby="booksHeading">
+          <div class="section-heading">
+            <div>
+              <div class="section-title-line"><h2 id="booksHeading">Choose a story</h2><span class="little-star" aria-hidden="true">✧</span></div>
+              <p id="booksSubheading">Find your next favorite adventure!</p>
+            </div>
+            <button class="add-book-button" id="openAddBook" type="button"><span aria-hidden="true">＋</span> Add a story</button>
+          </div>
+
+          <div class="toolbar">
+            <label class="search-box">
+              <span aria-hidden="true" class="search-icon">⌕</span>
+              <input id="searchInput" type="search" placeholder="Search for a story or author..." autocomplete="off" aria-label="Search for a story or author" />
+              <kbd>/</kbd>
+            </label>
+            <div class="view-note"><span class="view-spark" aria-hidden="true">✦</span> <span id="visibleCount">0</span> books to explore</div>
+          </div>
+
+          <div id="booksGrid" class="books-grid" aria-live="polite"></div>
+          <div id="emptyState" class="empty-state" hidden>
+            <span class="empty-emoji" aria-hidden="true">🔎</span>
+            <h3>No stories found</h3>
+            <p>Try another search, or add a new book to your shelf.</p>
+            <button class="text-button" id="clearFilters" type="button">Show all books</button>
+          </div>
+        </section>
+        <footer class="page-footer">A whole world in every book <span aria-hidden="true">♥</span></footer>
+      </main>
+    </div>
+
+    <dialog class="modal" id="bookModal" aria-labelledby="bookModalTitle">
+      <form id="bookForm" class="modal-card">
+        <button class="modal-close" type="button" data-close="bookModal" aria-label="Close">×</button>
+        <div class="modal-kicker" id="bookModalKicker">A NEW ADVENTURE IS JOINING</div>
+        <h2 id="bookModalTitle">Add a new story</h2>
+        <p class="modal-description" id="bookModalDescription">Add the details and give this book a happy home.</p>
+        <label class="field-label" for="bookTitle">Book title <span>*</span></label>
+        <input class="form-input" id="bookTitle" name="title" placeholder="e.g. The Very Hungry Caterpillar" required maxlength="80" />
+        <div class="form-row">
+          <div class="form-field"><label class="field-label" for="bookAuthor">Author</label><input class="form-input" id="bookAuthor" name="author" placeholder="Who wrote it?" maxlength="60" /></div>
+          <div class="form-field"><label class="field-label" for="bookCategory">Story world</label><select class="form-input" id="bookCategory" name="category"><option>Picture Books</option><option>Adventure</option><option>Animals</option><option>Fairy Tales</option><option>Learning</option><option>Other</option></select></div>
+        </div>
+        <label class="field-label" for="coverUpload">Cover picture <span class="optional-label">optional</span></label>
+        <label class="upload-box" for="coverUpload">
+          <span class="upload-icon" id="coverUploadIcon" aria-hidden="true">🖼️</span>
+          <span class="upload-preview-wrap" id="coverPreviewWrap" hidden><img id="coverPreview" alt="" /></span>
+          <span class="upload-copy" id="uploadText"><strong>Choose a cover picture</strong><small>JPG or PNG, up to 8 MB</small></span><span class="upload-action">Browse</span>
+          <input id="coverUpload" name="cover" type="file" accept="image/png,image/jpeg,image/webp" />
+        </label>
+        <div class="form-error" id="bookFormError" role="alert"></div>
+        <button class="submit-button" id="bookFormSubmit" type="submit"><span id="bookFormSubmitText">Add to my bookshelf</span> <span aria-hidden="true">✦</span></button>
+      </form>
+    </dialog>
+
+    <dialog class="modal" id="borrowModal" aria-labelledby="borrowModalTitle">
+      <form id="borrowForm" class="modal-card">
+        <button class="modal-close" type="button" data-close="borrowModal" aria-label="Close">×</button>
+        <div class="modal-kicker">LEND A BOOK TO A READER</div>
+        <h2 id="borrowModalTitle">Who is borrowing?</h2>
+        <p class="modal-description">Add the student’s name and we’ll keep track until the book comes back.</p>
+        <div class="selected-book" id="selectedBookName"></div>
+        <label class="field-label" for="studentName">Student’s name <span>*</span></label>
+        <input class="form-input" id="studentName" name="student" placeholder="Type the student’s name" required maxlength="60" />
+        <label class="field-label" for="dueDate">Bring it back by <span class="optional-label">optional</span></label>
+        <input class="form-input" id="dueDate" name="dueDate" type="date" />
+        <div class="form-error" id="borrowFormError" role="alert"></div>
+        <button class="submit-button" type="submit">Lend this book <span aria-hidden="true">♥</span></button>
+      </form>
+    </dialog>
+
+    <dialog class="modal" id="removeModal" aria-labelledby="removeModalTitle">
+      <section class="modal-card">
+        <button class="modal-close" type="button" data-close="removeModal" aria-label="Close">×</button>
+        <div class="modal-kicker">LIBRARY ADMIN</div>
+        <h2 id="removeModalTitle">Remove this book?</h2>
+        <p class="modal-description">This will remove the book and its borrowing details from this shelf.</p>
+        <div class="selected-book" id="removeBookName"></div>
+        <div class="modal-actions">
+          <button class="cancel-button" type="button" data-close="removeModal">Keep book</button>
+          <button class="delete-button" id="confirmRemove" type="button">Remove book</button>
+        </div>
+      </section>
+    </dialog>
+
+    <dialog class="modal history-modal" id="historyModal" aria-labelledby="historyModalTitle">
+      <section class="modal-card">
+        <button class="modal-close" type="button" data-close="historyModal" aria-label="Close">×</button>
+        <div class="modal-kicker">STORY SHELF MEMORIES</div>
+        <h2 id="historyModalTitle">Borrowing history</h2>
+        <p class="modal-description">Search book titles, then filter loans by student, date, and status.</p>
+        <div class="selected-book" id="historyBookTitle"></div>
+        <div class="history-filters" role="search" aria-label="Filter borrowing history">
+          <label class="history-filter-field history-student-filter" for="historyStudentFilter">Student
+            <input id="historyStudentFilter" type="search" placeholder="Type a student name" autocomplete="off" />
+          </label>
+          <label class="history-filter-field history-book-filter" for="historyBookFilter">Book title
+            <input id="historyBookFilter" type="search" placeholder="Search book titles" autocomplete="off" />
+          </label>
+          <label class="history-filter-field" for="historyFromDate">Borrowed from
+            <input id="historyFromDate" type="date" />
+          </label>
+          <label class="history-filter-field" for="historyToDate">Borrowed through
+            <input id="historyToDate" type="date" />
+          </label>
+          <div class="history-filter-field history-status-filter">
+            <label for="historyStatusFilter">Loan status</label>
+            <select id="historyStatusFilter">
+              <option value="">All statuses</option>
+              <option value="returned">Returned</option>
+              <option value="borrowed">Currently borrowed</option>
+              <option value="overdue">Overdue</option>
+            </select>
+            <div class="history-status-counts" role="group" aria-label="Filter history by status">
+              <button class="history-status-count history-status-count-returned" type="button" data-history-status="returned" aria-pressed="false"><strong id="historyReturnedCount">0</strong> returned</button>
+              <button class="history-status-count history-status-count-borrowed" type="button" data-history-status="borrowed" aria-pressed="false"><strong id="historyBorrowedCount">0</strong> currently borrowed</button>
+              <button class="history-status-count history-status-count-overdue" type="button" data-history-status="overdue" aria-pressed="false"><strong id="historyOverdueCount">0</strong> overdue</button>
+            </div>
+            <button class="history-filter-clear" id="clearHistoryFilters" type="button">Clear filters</button>
+          </div>
+        </div>
+        <p class="history-result-count" id="historyResultCount" role="status" aria-live="polite"></p>
+        <ul class="history-list" id="historyList" aria-live="polite"></ul>
+      </section>
+    </dialog>
+
+    <dialog class="modal accessibility-modal" id="accessibilitySettingsModal" aria-labelledby="accessibilitySettingsTitle">
+      <section class="modal-card accessibility-settings-card">
+        <button class="modal-close" type="button" data-close="accessibilitySettingsModal" aria-label="Close reading settings">&times;</button>
+        <div class="modal-kicker">MAKE READING COMFY</div>
+        <h2 id="accessibilitySettingsTitle">Reading settings</h2>
+        <p class="modal-description">Choose what helps you read. We&#8217;ll remember on this device.</p>
+        <div class="accessibility-settings-list">
+          <label class="accessibility-option" for="largerTextToggle">
+            <span class="accessibility-option-icon" aria-hidden="true">Aa</span>
+            <span class="accessibility-option-copy"><strong>Larger text</strong><small id="largerTextDescription">Make words and buttons easier to see.</small></span>
+            <input id="largerTextToggle" type="checkbox" aria-describedby="largerTextDescription" />
+          </label>
+          <label class="accessibility-option" for="highContrastToggle">
+            <span class="accessibility-option-icon accessibility-contrast-icon" aria-hidden="true"><span></span></span>
+            <span class="accessibility-option-copy"><strong>Stronger color contrast</strong><small id="highContrastDescription">Make words, buttons, and outlines stand out.</small></span>
+            <input id="highContrastToggle" type="checkbox" aria-describedby="highContrastDescription" />
+          </label>
+        </div>
+        <p class="accessibility-settings-status" id="accessibilitySettingsStatus" role="status" aria-live="polite">Changes apply right away.</p>
+        <button class="submit-button accessibility-settings-done" type="button" data-close="accessibilitySettingsModal">Done</button>
+      </section>
+    </dialog>
+
+    <dialog class="modal auth-modal" id="authModal" aria-labelledby="authTitle">
+      <form id="authForm" class="modal-card auth-card">
+        <div class="auth-brand"><span aria-hidden="true">📚</span> little<span>library</span></div>
+        <button class="accessibility-trigger auth-accessibility-trigger" id="authAccessibilitySettingsButton" type="button" aria-haspopup="dialog" aria-controls="accessibilitySettingsModal" aria-label="Open reading accessibility settings" title="Reading settings">
+          <span class="accessibility-trigger-icon" aria-hidden="true">Aa</span><span class="accessibility-trigger-label">Text &amp; colors</span>
+        </button>
+        <div class="modal-kicker" id="authKicker">WELCOME BACK</div>
+        <h2 id="authTitle">Sign in to your library</h2>
+        <p class="modal-description" id="authDescription">Choose your role and enter its password.</p>
+        <div id="loginFields">
+          <div class="auth-role-options" role="group" aria-label="Choose sign-in role">
+            <button class="auth-role-option" type="button" data-auth-role="reader" aria-pressed="true"><span class="auth-role-icon" aria-hidden="true">📖</span><span>Reader</span></button>
+            <button class="auth-role-option" type="button" data-auth-role="admin" aria-pressed="false"><span class="auth-role-icon" aria-hidden="true"><svg class="admin-role-mark" viewBox="0 0 24 24" focusable="false"><circle cx="9" cy="7" r="3" fill="currentColor"/><path d="M3.5 20v-1.2c0-3.1 2.5-5.6 5.5-5.6s5.5 2.5 5.5 5.6V20z" fill="currentColor"/><path d="m18.3 11.2.9 1.8 2 .3-1.4 1.4.3 2-1.8-.9-1.8.9.3-2-1.4-1.4 2-.3z" fill="currentColor" stroke="white" stroke-width=".7"/></svg></span><span>Admin</span></button>
+          </div>
+          <label class="field-label" for="loginPassword">Password</label>
+          <div class="password-input-wrap">
+            <input class="form-input" id="loginPassword" name="loginPassword" type="password" data-password-group="login" autocomplete="current-password" required />
+            <button class="password-toggle" type="button" data-password-toggle="login" data-password-label="password" aria-controls="loginPassword" aria-label="Show password" aria-pressed="false">Show</button>
+          </div>
+          <button class="forgot-password-link" id="forgotPasswordButton" type="button">Forgot Reader password?</button>
+        </div>
+        <div id="setupFields" hidden>
+          <p class="setup-note">Follow the checklist to create both accounts. You&#8217;ll save a recovery key at the end.</p>
+          <div class="setup-checklist-summary">
+            <span>Account setup</span>
+            <strong id="setupChecklistProgressText">0 of 2 steps complete</strong>
+          </div>
+          <div class="setup-progress-track" id="setupChecklistProgress" role="progressbar" aria-label="Account setup progress" aria-valuemin="0" aria-valuemax="2" aria-valuenow="0">
+            <span id="setupChecklistProgressBar"></span>
+          </div>
+          <ol class="setup-checklist" aria-label="Account setup checklist">
+            <li class="setup-checklist-step" data-setup-step="admin" data-complete="false">
+              <div class="setup-step-heading">
+                <span class="setup-step-number" aria-hidden="true">1</span>
+                <div class="setup-step-copy"><h3>Admin account</h3><p>For the person who manages the library.</p></div>
+                <span class="setup-step-state" id="adminSetupStepState">To do</span>
+              </div>
+              <label class="field-label" for="adminPassword">Admin password</label>
+              <div class="password-input-wrap">
+                <input class="form-input" id="adminPassword" name="adminPassword" type="password" data-password-group="admin" autocomplete="new-password" minlength="6" aria-describedby="adminPasswordStrengthText" />
+                <button class="password-toggle" type="button" data-password-toggle="admin" data-password-label="Admin passwords" aria-controls="adminPassword confirmAdminPassword" aria-label="Show Admin passwords" aria-pressed="false">Show</button>
+              </div>
+              <div class="password-strength" data-strength="0">
+                <div class="password-strength-meter" id="adminPasswordStrengthMeter" role="meter" aria-label="Admin password strength" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0" aria-valuetext="Enter a password to check its strength.">
+                  <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+                </div>
+                <p class="password-strength-text" id="adminPasswordStrengthText" aria-live="polite" aria-atomic="true">Enter a password to check its strength.</p>
+              </div>
+              <label class="field-label" for="confirmAdminPassword">Confirm Admin password</label>
+              <div class="password-input-wrap">
+                <input class="form-input" id="confirmAdminPassword" name="confirmAdminPassword" type="password" data-password-group="admin" autocomplete="new-password" minlength="6" aria-describedby="adminPasswordMatch" />
+                <button class="password-toggle" type="button" data-password-toggle="admin" data-password-label="Admin passwords" aria-controls="adminPassword confirmAdminPassword" aria-label="Show Admin passwords" aria-pressed="false">Show</button>
+              </div>
+              <p class="password-match-status" id="adminPasswordMatch" data-state="waiting" role="status" aria-live="polite" aria-atomic="true">Repeat the password to check it matches.</p>
+            </li>
+            <li class="setup-checklist-step" data-setup-step="reader" data-complete="false">
+              <div class="setup-step-heading">
+                <span class="setup-step-number" aria-hidden="true">2</span>
+                <div class="setup-step-copy"><h3>Reader account</h3><p>For readers who borrow and return books.</p></div>
+                <span class="setup-step-state" id="readerSetupStepState">To do</span>
+              </div>
+              <label class="field-label" for="readerPassword">Shared Reader password</label>
+              <div class="password-input-wrap">
+                <input class="form-input" id="readerPassword" name="readerPassword" type="password" data-password-group="reader" autocomplete="new-password" minlength="6" aria-describedby="readerPasswordStrengthText" />
+                <button class="password-toggle" type="button" data-password-toggle="reader" data-password-label="Reader passwords" aria-controls="readerPassword confirmReaderPassword" aria-label="Show Reader passwords" aria-pressed="false">Show</button>
+              </div>
+              <div class="password-strength" data-strength="0">
+                <div class="password-strength-meter" id="readerPasswordStrengthMeter" role="meter" aria-label="Reader password strength" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0" aria-valuetext="Enter a password to check its strength.">
+                  <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+                </div>
+                <p class="password-strength-text" id="readerPasswordStrengthText" aria-live="polite" aria-atomic="true">Enter a password to check its strength.</p>
+              </div>
+              <label class="field-label" for="confirmReaderPassword">Confirm Reader password</label>
+              <div class="password-input-wrap">
+                <input class="form-input" id="confirmReaderPassword" name="confirmReaderPassword" type="password" data-password-group="reader" autocomplete="new-password" minlength="6" aria-describedby="readerPasswordMatch" />
+                <button class="password-toggle" type="button" data-password-toggle="reader" data-password-label="Reader passwords" aria-controls="readerPassword confirmReaderPassword" aria-label="Show Reader passwords" aria-pressed="false">Show</button>
+              </div>
+              <p class="password-match-status" id="readerPasswordMatch" data-state="waiting" role="status" aria-live="polite" aria-atomic="true">Repeat the password to check it matches.</p>
+            </li>
+          </ol>
+          <p class="password-hint">Use at least 6 characters for each password.</p>
+          <p class="setup-checklist-message" id="setupChecklistMessage" role="status" aria-live="polite" aria-atomic="true">First, set an Admin password and confirm it.</p>
+        </div>
+        <div class="form-error" id="authError" role="alert"></div>
+        <button class="submit-button" id="authSubmitButton" type="submit">Sign in as Reader</button>
+      </form>
+    </dialog>
+
+    <dialog class="modal recovery-modal" id="recoveryResetModal" aria-labelledby="recoveryResetTitle">
+      <form id="recoveryResetForm" class="modal-card">
+        <button class="modal-close" type="button" data-close="recoveryResetModal" aria-label="Close password recovery">&times;</button>
+        <div class="modal-kicker">ACCOUNT RECOVERY</div>
+        <h2 id="recoveryResetTitle">Reset Reader password</h2>
+        <p class="modal-description" id="recoveryResetDescription">Use the library recovery key saved during setup. The key can reset either account.</p>
+        <label class="field-label" for="recoveryCodeInput">Library recovery key <span>*</span></label>
+        <input class="form-input recovery-code-input" id="recoveryCodeInput" name="recoveryCode" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABCD-EF12-…" required />
+        <p class="recovery-help">No recovery key? Ask an Admin to sign in and set one up.</p>
+        <label class="field-label" for="recoveryPassword">New password <span>*</span></label>
+        <div class="password-input-wrap">
+          <input class="form-input" id="recoveryPassword" name="newPassword" type="password" data-password-group="recovery" autocomplete="new-password" minlength="6" required aria-describedby="recoveryPasswordStrengthText" />
+          <button class="password-toggle" type="button" data-password-toggle="recovery" data-password-label="new password" aria-controls="recoveryPassword confirmRecoveryPassword" aria-label="Show recovery passwords" aria-pressed="false">Show</button>
+        </div>
+        <div class="password-strength" data-strength="0">
+          <div class="password-strength-meter" id="recoveryPasswordStrengthMeter" role="meter" aria-label="New password strength" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0" aria-valuetext="Enter a password to check its strength.">
+            <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+          </div>
+          <p class="password-strength-text" id="recoveryPasswordStrengthText" aria-live="polite" aria-atomic="true">Enter a password to check its strength.</p>
+        </div>
+        <label class="field-label" for="confirmRecoveryPassword">Confirm new password <span>*</span></label>
+        <div class="password-input-wrap">
+          <input class="form-input" id="confirmRecoveryPassword" name="confirmNewPassword" type="password" data-password-group="recovery" autocomplete="new-password" minlength="6" required aria-describedby="recoveryPasswordMatch" />
+          <button class="password-toggle" type="button" data-password-toggle="recovery" data-password-label="new password" aria-controls="recoveryPassword confirmRecoveryPassword" aria-label="Show recovery passwords" aria-pressed="false">Show</button>
+        </div>
+        <p class="password-match-status" id="recoveryPasswordMatch" data-state="waiting" role="status" aria-live="polite" aria-atomic="true">Repeat the password to check it matches.</p>
+        <div class="form-error" id="recoveryResetError" role="alert"></div>
+        <button class="submit-button" id="recoveryResetSubmit" type="submit">Reset password</button>
+      </form>
+    </dialog>
+
+    <dialog class="modal recovery-modal" id="recoveryKeyModal" aria-labelledby="recoveryKeyTitle">
+      <section class="modal-card">
+        <button class="modal-close" type="button" data-close="recoveryKeyModal" aria-label="Close recovery key">&times;</button>
+        <div class="modal-kicker">ADMIN ACCOUNT SAFETY</div>
+        <h2 id="recoveryKeyTitle">Set up account recovery</h2>
+        <div id="recoveryKeyPrompt">
+          <p class="modal-description" id="recoveryKeyPromptText">Create a private key that can reset either library password.</p>
+          <div class="form-error" id="recoveryKeyError" role="alert"></div>
+          <div class="modal-actions">
+            <button class="cancel-button" type="button" data-close="recoveryKeyModal">Not now</button>
+            <button class="submit-button" id="recoveryKeyConfirm" type="button">Create recovery key</button>
+          </div>
+        </div>
+        <div id="recoveryKeyReveal" hidden>
+          <p class="modal-description">Keep it somewhere private. It can reset the Admin or shared Reader password. This key is shown only once.</p>
+          <label class="field-label" for="recoveryKeyValue">Your recovery key</label>
+          <div class="recovery-key-wrap">
+            <input class="form-input recovery-code-input" id="recoveryKeyValue" type="text" readonly aria-label="One-time library recovery key" />
+            <button class="password-toggle recovery-copy-button" id="copyRecoveryKey" type="button">Copy</button>
+          </div>
+          <p class="recovery-copy-status" id="recoveryCopyStatus" role="status" aria-live="polite"></p>
+          <button class="submit-button recovery-key-done" type="button" data-close="recoveryKeyModal">I saved the key</button>
+        </div>
+      </section>
+    </dialog>
+
+    <dialog class="modal account-password-modal" id="accountPasswordsModal" aria-labelledby="accountPasswordsTitle">
+      <section class="modal-card account-password-card">
+        <button class="modal-close" type="button" data-close="accountPasswordsModal" aria-label="Close account password settings">&times;</button>
+        <div class="modal-kicker">ADMIN ACCOUNT SETTINGS</div>
+        <h2 id="accountPasswordsTitle">Account passwords</h2>
+        <p class="modal-description">Update the password for the person managing the library or for everyone who signs in as Reader.</p>
+        <div class="account-password-grid">
+          <form class="account-password-panel" id="adminPasswordChangeForm">
+            <h3>Admin password</h3>
+            <p class="account-password-intro">Confirm your current password first. This session stays signed in; other Admin sessions will need the new password.</p>
+            <label class="field-label" for="currentAdminPassword">Current Admin password <span>*</span></label>
+            <div class="password-input-wrap">
+              <input class="form-input" id="currentAdminPassword" name="currentPassword" type="password" data-password-group="adminChange" autocomplete="current-password" required />
+              <button class="password-toggle" type="button" data-password-toggle="adminChange" data-password-label="Admin passwords" aria-controls="currentAdminPassword adminChangePassword confirmAdminChangePassword" aria-label="Show Admin passwords" aria-pressed="false">Show</button>
+            </div>
+            <label class="field-label" for="adminChangePassword">New Admin password <span>*</span></label>
+            <div class="password-input-wrap">
+              <input class="form-input" id="adminChangePassword" name="newPassword" type="password" data-password-group="adminChange" autocomplete="new-password" minlength="6" maxlength="256" required aria-describedby="adminChangePasswordStrengthText" />
+              <button class="password-toggle" type="button" data-password-toggle="adminChange" data-password-label="Admin passwords" aria-controls="currentAdminPassword adminChangePassword confirmAdminChangePassword" aria-label="Show Admin passwords" aria-pressed="false">Show</button>
+            </div>
+            <div class="password-strength" data-strength="0">
+              <div class="password-strength-meter" id="adminChangePasswordStrengthMeter" role="meter" aria-label="New Admin password strength" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0" aria-valuetext="Enter a password to check its strength.">
+                <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+              </div>
+              <p class="password-strength-text" id="adminChangePasswordStrengthText" aria-live="polite" aria-atomic="true">Enter a password to check its strength.</p>
+            </div>
+            <label class="field-label" for="confirmAdminChangePassword">Confirm new Admin password <span>*</span></label>
+            <div class="password-input-wrap">
+              <input class="form-input" id="confirmAdminChangePassword" name="confirmation" type="password" data-password-group="adminChange" autocomplete="new-password" minlength="6" maxlength="256" required aria-describedby="adminChangePasswordMatch" />
+              <button class="password-toggle" type="button" data-password-toggle="adminChange" data-password-label="Admin passwords" aria-controls="currentAdminPassword adminChangePassword confirmAdminChangePassword" aria-label="Show Admin passwords" aria-pressed="false">Show</button>
+            </div>
+            <p class="password-match-status" id="adminChangePasswordMatch" data-state="waiting" role="status" aria-live="polite" aria-atomic="true">Repeat the password to check it matches.</p>
+            <div class="form-error" id="adminPasswordChangeError" role="alert"></div>
+            <p class="account-password-status" id="adminPasswordChangeStatus" role="status" aria-live="polite"></p>
+            <button class="submit-button" id="adminPasswordChangeSubmit" type="submit">Change Admin password</button>
+          </form>
+
+          <form class="account-password-panel" id="readerPasswordChangeForm">
+            <h3>Shared Reader password</h3>
+            <p class="account-password-intro">Choose a new password for all Readers. They will need to sign in again afterward.</p>
+            <label class="field-label" for="readerChangePassword">New Reader password <span>*</span></label>
+            <div class="password-input-wrap">
+              <input class="form-input" id="readerChangePassword" name="newPassword" type="password" data-password-group="readerChange" autocomplete="new-password" minlength="6" maxlength="256" required aria-describedby="readerChangePasswordStrengthText" />
+              <button class="password-toggle" type="button" data-password-toggle="readerChange" data-password-label="Reader passwords" aria-controls="readerChangePassword confirmReaderChangePassword" aria-label="Show Reader passwords" aria-pressed="false">Show</button>
+            </div>
+            <div class="password-strength" data-strength="0">
+              <div class="password-strength-meter" id="readerChangePasswordStrengthMeter" role="meter" aria-label="New Reader password strength" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0" aria-valuetext="Enter a password to check its strength.">
+                <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+              </div>
+              <p class="password-strength-text" id="readerChangePasswordStrengthText" aria-live="polite" aria-atomic="true">Enter a password to check its strength.</p>
+            </div>
+            <label class="field-label" for="confirmReaderChangePassword">Confirm new Reader password <span>*</span></label>
+            <div class="password-input-wrap">
+              <input class="form-input" id="confirmReaderChangePassword" name="confirmation" type="password" data-password-group="readerChange" autocomplete="new-password" minlength="6" maxlength="256" required aria-describedby="readerChangePasswordMatch" />
+              <button class="password-toggle" type="button" data-password-toggle="readerChange" data-password-label="Reader passwords" aria-controls="readerChangePassword confirmReaderChangePassword" aria-label="Show Reader passwords" aria-pressed="false">Show</button>
+            </div>
+            <p class="password-match-status" id="readerChangePasswordMatch" data-state="waiting" role="status" aria-live="polite" aria-atomic="true">Repeat the password to check it matches.</p>
+            <div class="form-error" id="readerPasswordChangeError" role="alert"></div>
+            <p class="account-password-status" id="readerPasswordChangeStatus" role="status" aria-live="polite"></p>
+            <button class="submit-button" id="readerPasswordChangeSubmit" type="submit">Change Reader password</button>
+          </form>
+        </div>
+        <button class="cancel-button account-password-done" type="button" data-close="accountPasswordsModal">Done</button>
+      </section>
+    </dialog>
+
+    <dialog class="modal reader-tour-modal" id="readerTourModal" aria-labelledby="readerTourTitle">
+      <section class="modal-card reader-tour-card">
+        <button class="modal-close" type="button" data-close="readerTourModal" aria-label="Close tour">&times;</button>
+        <div class="reader-tour-kicker">YOUR LIBRARY ADVENTURE</div>
+        <h2 id="readerTourTitle" tabindex="-1">Three little steps to story time</h2>
+        <p class="reader-tour-intro">Here&#8217;s how to find a book, take it on an adventure, and bring it back.</p>
+        <div class="reader-tour-progress-copy" aria-live="polite"><span id="readerTourStepLabel">Step 1 of 3</span><span>You&#8217;re doing great!</span></div>
+        <div class="reader-tour-progress" id="readerTourProgress" role="progressbar" aria-label="Library tour progress" aria-valuemin="1" aria-valuemax="3" aria-valuenow="1"><span id="readerTourProgressBar"></span></div>
+        <div class="reader-tour-slides" aria-live="polite" aria-atomic="true">
+          <article class="reader-tour-slide" data-reader-tour-step="0">
+            <span class="reader-tour-art reader-tour-art-find" aria-hidden="true">&#128269;</span>
+            <div class="reader-tour-copy">
+              <p class="reader-tour-step-label">1. FIND A STORY</p>
+              <h3 tabindex="-1">Pick your next adventure</h3>
+              <p>Search for a book or author, or choose a Story World. Look for a book marked <strong>Ready to read</strong>.</p>
+            </div>
+          </article>
+          <article class="reader-tour-slide" data-reader-tour-step="1" hidden>
+            <span class="reader-tour-art reader-tour-art-borrow" aria-hidden="true">&#128214;</span>
+            <div class="reader-tour-copy">
+              <p class="reader-tour-step-label">2. BORROW A BOOK</p>
+              <h3 tabindex="-1">Take a story with you</h3>
+              <p>Press <strong>Borrow this book</strong>, then add your name so your teacher knows who is reading it. You can add a return date too.</p>
+            </div>
+          </article>
+          <article class="reader-tour-slide" data-reader-tour-step="2" hidden>
+            <span class="reader-tour-art reader-tour-art-return" aria-hidden="true">&#127968;</span>
+            <div class="reader-tour-copy">
+              <p class="reader-tour-step-label">3. RETURN A BOOK</p>
+              <h3 tabindex="-1">Make room for another reader</h3>
+              <p>When you finish, find your book under <strong>Borrowed out</strong> and press <strong>Mark as returned</strong>. Now it is ready for a new adventure!</p>
+            </div>
+          </article>
+        </div>
+        <div class="reader-tour-footer">
+          <button class="reader-tour-skip" id="readerTourSkip" type="button">Skip tour</button>
+          <div class="reader-tour-actions">
+            <button class="cancel-button reader-tour-back" id="readerTourBack" type="button" hidden>Back</button>
+            <button class="submit-button reader-tour-next" id="readerTourNext" type="button">Next <span aria-hidden="true">&#8594;</span></button>
+            <button class="submit-button reader-tour-finish" id="readerTourFinish" type="button" hidden>Let&#8217;s read!</button>
+          </div>
+        </div>
+      </section>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
