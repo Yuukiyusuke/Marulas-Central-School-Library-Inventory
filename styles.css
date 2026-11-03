@@ -125,6 +125,7 @@ body:not([data-role="admin"]) [data-admin-only] { display: none !important; }
 .brand-name span { color: var(--purple); }
 .nav-label { margin: 0 0 11px 9px; color: #77748b; font-size: 11px; font-weight: 800; letter-spacing: 1px; }
 .primary-nav, .category-nav { display: grid; gap: 7px; }
+.category-nav { min-width: 0; grid-template-columns: minmax(0, 1fr); }
 .nav-link, .category-link {
   display: flex; width: 100%; min-height: 49px; align-items: center; gap: 11px; padding: 0 12px;
   border: 0; border-radius: 14px; background: transparent; color: #55556b; text-align: left;
@@ -138,7 +139,7 @@ body:not([data-role="admin"]) [data-admin-only] { display: none !important; }
 .nav-count { margin-left: auto; padding: 3px 8px; border-radius: 12px; background: #f3f2f7; color: #656277; font-size: 12px; font-weight: 800; }
 .nav-link.active .nav-count { background: #fff; color: var(--theme-accent-ink); }
 .category-label { margin-top: 29px; }
-.category-link { min-height: 43px; gap: 10px; padding-left: 14px; font-size: 13px; }
+.category-link { min-width: 0; min-height: 43px; gap: 10px; padding-left: 14px; font-size: 13px; }
 .category-dot { display: grid; width: 24px; height: 24px; flex: 0 0 24px; place-items: center; border-radius: 8px; background: var(--theme-accent-soft); color: var(--theme-accent-ink); font-size: 15px; }
 .category-link.selected { background: var(--theme-accent-selected); color: var(--theme-accent-ink); }
 .sidebar-note { position: relative; min-height: 124px; overflow: hidden; margin-top: auto; padding: 14px; border: 2px solid #ffe39c; border-radius: 19px; background: linear-gradient(145deg, #fff8e3 0%, #fff1c9 100%); box-shadow: 0 3px 0 #f3dfa9; color: #765d1c; }
@@ -1056,7 +1057,7 @@ html.high-contrast-mode.dark-mode .form-error { color: #ffbdb3 !important; }
   .stat-art { right: 24px; }
   .books-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-@media (max-width: 620px) {
+@media (max-width: 700px) {
   .theme-choice-list { grid-template-columns: 1fr; }
   .sidebar { position: sticky; inset: 0 0 auto; width: 100%; height: auto; flex-direction: column; align-items: stretch; gap: 7px; padding: 8px 12px; border-right: 0; border-bottom: 2px solid var(--line); }
   .brand { flex: 0 0 auto; gap: 7px; margin: 0; }
@@ -1208,7 +1209,7 @@ html.high-contrast-mode.dark-mode .form-error { color: #ffbdb3 !important; }
 /* Keep the page usable between breakpoint sizes as well as at common devices. */
 html, body { max-width: 100%; overflow-x: clip; }
 .app-shell, .main-content, .sidebar { min-width: 0; }
-.sidebar { overflow-y: auto; overscroll-behavior: contain; }
+.sidebar { overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
 .section-heading > div:first-child { min-width: 0; }
 .stats-grid, .insights-grid, .due-groups, .books-grid { min-width: 0; }
 
@@ -1221,12 +1222,13 @@ html, body { max-width: 100%; overflow-x: clip; }
   .role-switch-button { min-width: 0; gap: 6px; }
   .role-switch-destination { margin-left: 0; }
   .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .books-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .stat-card { min-width: 0; min-height: 110px; padding: 16px; }
   .welcome-row { min-width: 0; }
   .welcome-row > div:first-child { min-width: 0; flex: 1 1 auto; }
 }
 
-@media (min-width: 621px) and (max-width: 700px) {
+@media (min-width: 701px) and (max-width: 760px) {
   .topbar { height: auto; min-height: 68px; flex-wrap: wrap; gap: 7px; padding: 8px 0; }
   .breadcrumb { min-width: 90px; flex: 1 1 90px; flex-wrap: nowrap; white-space: nowrap; }
   .topbar-right { min-width: 0; flex: 0 1 auto; gap: 6px; margin-left: auto; }
@@ -1238,7 +1240,7 @@ html, body { max-width: 100%; overflow-x: clip; }
   .welcome-illustration { display: none; }
 }
 
-@media (max-width: 620px) {
+@media (max-width: 700px) {
   .sidebar { overflow: visible; }
   .nav-label:not(.category-label) { display: block; margin: 0 0 -3px 3px; font-size: 12px; letter-spacing: .55px; line-height: 1.2; }
   .category-label { margin: 0 0 1px 3px; font-size: 12px; letter-spacing: .55px; line-height: 1.2; }
@@ -1362,6 +1364,20 @@ html, body { max-width: 100%; overflow-x: clip; }
   .modal-actions .submit-button { order: -1; }
   .recovery-modal .modal-actions .cancel-button { flex-basis: auto; }
   .auth-accessibility-trigger { width: 42px; min-width: 42px; }
+}
+
+/* Keep the active section readable beside account controls on tablet layouts. */
+@media (min-width: 621px) and (max-width: 880px) {
+  .breadcrumb > span:first-child,
+  .breadcrumb .crumb-dot { display: none; }
+  .breadcrumb { min-width: 0; }
+}
+
+/* The date and account controls need room at small desktop widths. */
+@media (min-width: 881px) and (max-width: 1050px) {
+  .topbar { column-gap: 16px; }
+  .breadcrumb > span:first-child,
+  .breadcrumb .crumb-dot { display: none; }
 }
 
 @media (max-width: 435px) {
